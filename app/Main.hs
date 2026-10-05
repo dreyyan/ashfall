@@ -1,4 +1,5 @@
 module Main (main) where
+import Ashfall.Robot
 
 main :: IO ()
-main = putStrLn "Hello, Haskell!"
+main = putStrLn (robotStatus "Eva")

@@ -79,3 +79,7 @@ executable ashfall
 
     -- Base language which the package is written in.
     default-language: GHC2021
+
+    -- Additional modules.
+    other-modules:
+        Ashfall.Robot
