@@ -31,3 +31,9 @@ isWorking Mining = True
 isWorking Exploring = True
 isWorking Charging = False
 isWorking Repairing = False
+
+consumeEnergy :: Int -> Robot -> Either String Robot
+consumeEnergy x robot
+  | x < 0 = Left "> Invalid energy amount!"
+  | x > robotEnergy robot = Left "> Robot is out of energy!"
+  | otherwise = Right (robot { robotEnergy = robotEnergy robot - x })
