@@ -75,7 +75,7 @@ executable ashfall
     build-depends:    base ^>=4.20.2.0
 
     -- Directories containing source files.
-    hs-source-dirs:   app
+    hs-source-dirs:   app, src
 
     -- Base language which the package is written in.
     default-language: GHC2021
