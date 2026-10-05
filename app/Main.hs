@@ -2,4 +2,6 @@ module Main (main) where
 import Ashfall.Robot
 
 main :: IO ()
-main = putStrLn (robotStatus "Eva")
+main = do
+  let newRobot = Robot 1 "Adam" 100 Idle
+  print (newRobot)
