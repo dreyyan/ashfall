@@ -83,6 +83,7 @@ executable ashfall
     -- Additional modules.
     other-modules:
         Ashfall.Robot
+        Ashfall.Constants
 
 test-suite ashfall-test
     type: exitcode-stdio-1.0
@@ -90,6 +91,7 @@ test-suite ashfall-test
     hs-source-dirs: test, src
     other-modules:
         Ashfall.Robot
+        Ashfall.Constants
     build-depends:
         base,
         hspec

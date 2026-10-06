@@ -14,3 +14,8 @@ main = hspec $ do
     it "rejects if robot has insufficient energy" $ do
       consumeEnergy (101) robot
         `shouldBe` Left "> Robot is out of energy!"
+
+  describe "rechargeEnergy" $ do
+    it "rejects non-positive amounts" $ do
+      rechargeEnergy (-1) robot
+        `shouldBe` Left "> Invalid recharge amount!"
