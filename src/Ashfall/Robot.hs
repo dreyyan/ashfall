@@ -1,5 +1,6 @@
 module Ashfall.Robot where
 
+-- | Represents a Robot's status.
 data RobotStatus
   = Idle
   | Mining
@@ -8,6 +9,7 @@ data RobotStatus
   | Repairing
   deriving (Show, Eq)
 
+-- | Represents a Robot in Ashfall.
 data Robot = Robot
   { robotId       :: Int
   , robotName     :: String
@@ -17,7 +19,7 @@ data Robot = Robot
 
 instance Show Robot where
   show (Robot rid name energy status) =
-    "-- " ++ show name ++ " [" ++ show rid ++ "] --\n" ++
+    "-- " ++ name ++ " [" ++ show rid ++ "] --\n" ++
     "Energy: " ++ show energy ++
     "\nStatus: " ++ show status
 
@@ -25,6 +27,7 @@ instance Eq Robot where
   (Robot id1 _ _ _) == (Robot id2 _ _ _) =
     id1 == id2
 
+-- | Check if Robot is working.
 isWorking :: RobotStatus -> Bool
 isWorking Idle = False
 isWorking Mining = True
@@ -32,6 +35,7 @@ isWorking Exploring = True
 isWorking Charging = False
 isWorking Repairing = False
 
+-- | Consumes energy from a Robot.
 consumeEnergy :: Int -> Robot -> Either String Robot
 consumeEnergy x robot
   | x < 0 = Left "> Invalid energy amount!"
