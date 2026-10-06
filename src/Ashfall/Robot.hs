@@ -1,5 +1,6 @@
 module Ashfall.Robot where
 import Ashfall.Constants (maxRobotEnergy)
+import Ashfall.Error (errorMessage)
 
 -- | Represents a Robot's status.
 data RobotStatus
@@ -39,12 +40,12 @@ isWorking Repairing = False
 -- | Consumes energy from a Robot.
 consumeEnergy :: Int -> Robot -> Either String Robot
 consumeEnergy x robot
-  | x < 0 = Left "> Invalid energy amount!"
-  | x > robotEnergy robot = Left "> Robot is out of energy!"
+  | x < 0 = Left (errorMessage "Invalid energy amount!")
+  | x > robotEnergy robot = Left (errorMessage "Robot is out of energy!")
   | otherwise = Right (robot { robotEnergy = robotEnergy robot - x })
 
 -- | Recharges a robot's energy.
 rechargeEnergy :: Int -> Robot -> Either String Robot
 rechargeEnergy x robot
-  | x < 1 = Left "> Invalid recharge amount!"
+  | x < 1 = Left (errorMessage "Invalid recharge amount!")
   | otherwise = Right (robot { robotEnergy = min maxRobotEnergy (robotEnergy robot + x) })

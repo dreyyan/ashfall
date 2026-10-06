@@ -2,20 +2,27 @@ module Main (main) where
 
 import Test.Hspec
 import Ashfall.Robot
+import Ashfall.Error
 
 main :: IO()
 main = hspec $ do
-  let robot = Robot 1 "Adam" 100 Idle
-
   describe "consumeEnergy" $ do
+    let fullEnergyRobot = Robot 1 "Adam" 100 Idle
+    it "accepts valid energy consumption" $ do
+      consumeEnergy 10 fullEnergyRobot
+        `shouldBe` Right (Robot 1 "Adam" 90 Idle)
     it "rejects negative amounts" $ do
-      consumeEnergy (-10) robot
-        `shouldBe` Left "> Invalid energy amount!"
+      consumeEnergy (-10) fullEnergyRobot
+        `shouldBe` Left (errorMessage "Invalid energy amount!")
     it "rejects if robot has insufficient energy" $ do
-      consumeEnergy (101) robot
-        `shouldBe` Left "> Robot is out of energy!"
+      consumeEnergy 101 fullEnergyRobot
+        `shouldBe` Left (errorMessage "Robot is out of energy!")
 
   describe "rechargeEnergy" $ do
+    let lowEnergyRobot = Robot 1 "Adam" 90 Idle
+    it "accepts valid energy recharge" $ do
+      rechargeEnergy (10) lowEnergyRobot
+        `shouldBe` Right (Robot 1 "Adam" 100 Idle)
     it "rejects non-positive amounts" $ do
-      rechargeEnergy (-1) robot
-        `shouldBe` Left "> Invalid recharge amount!"
+      rechargeEnergy (-1) lowEnergyRobot
+        `shouldBe` Left (errorMessage "Invalid recharge amount!")
