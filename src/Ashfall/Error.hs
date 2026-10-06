@@ -1,4 +1,10 @@
 module Ashfall.Error where
 
-errorMessage :: String -> String
-errorMessage msg = "> " ++ msg
+data GameError
+  = InvalidEnergyAmount
+  | InsufficientEnergy
+  deriving (Eq, Show)
+
+errorMessage :: GameError -> String
+errorMessage InvalidEnergyAmount = "> " ++ "Invalid energy amount!"
+errorMessage InsufficientEnergy = "> " ++ "Insufficient energy!"

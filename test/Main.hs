@@ -13,10 +13,10 @@ main = hspec $ do
         `shouldBe` Right (Robot 1 "Adam" 90 Idle)
     it "rejects negative amounts" $ do
       consumeEnergy (-10) fullEnergyRobot
-        `shouldBe` Left (errorMessage "Invalid energy amount!")
+        `shouldBe` Left InvalidEnergyAmount
     it "rejects if robot has insufficient energy" $ do
       consumeEnergy 101 fullEnergyRobot
-        `shouldBe` Left (errorMessage "Robot is out of energy!")
+        `shouldBe` Left InsufficientEnergy
 
   describe "rechargeEnergy" $ do
     let lowEnergyRobot = Robot 1 "Adam" 90 Idle
@@ -25,4 +25,13 @@ main = hspec $ do
         `shouldBe` Right (Robot 1 "Adam" 100 Idle)
     it "rejects non-positive amounts" $ do
       rechargeEnergy (-1) lowEnergyRobot
-        `shouldBe` Left (errorMessage "Invalid recharge amount!")
+        `shouldBe` Left InvalidEnergyAmount
+
+  describe "errorMessage" $ do
+    it "formats invalid energy errors" $ do
+      errorMessage InvalidEnergyAmount
+        `shouldBe` "> Invalid energy amount!"
+
+    it "formats insufficient energy errors" $ do
+      errorMessage InsufficientEnergy
+        `shouldBe` "> Insufficient energy!"
