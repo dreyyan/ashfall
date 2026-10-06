@@ -83,3 +83,14 @@ executable ashfall
     -- Additional modules.
     other-modules:
         Ashfall.Robot
+
+test-suite ashfall-test
+    type: exitcode-stdio-1.0
+    main-is: Main.hs
+    hs-source-dirs: test, src
+    other-modules:
+        Ashfall.Robot
+    build-depends:
+        base,
+        hspec
+    default-language: GHC2021
