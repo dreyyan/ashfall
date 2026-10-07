@@ -11,6 +11,14 @@ data RobotStatus
   | Repairing
   deriving (Show, Eq)
 
+-- | Represents a task the Robot performs.
+data RobotTask
+  = Mine
+  | Explore
+  | Recharge
+  | Repair
+  deriving (Show, Eq)
+
 -- | Represents a Robot in Ashfall.
 data Robot = Robot
   { robotId       :: Int
