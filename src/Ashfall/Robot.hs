@@ -4,11 +4,9 @@ import Ashfall.Error (GameError (InvalidEnergyAmount, InsufficientEnergy))
 
 -- | Represents a Robot's status.
 data RobotStatus
-  = Idle
-  | Mining
-  | Exploring
-  | Charging
-  | Repairing
+  = Working
+  | Idle
+  | Disabled
   deriving (Show, Eq)
 
 -- | Represents a task the Robot performs.
@@ -25,25 +23,19 @@ data Robot = Robot
   , robotName     :: String
   , robotEnergy   :: Int
   , robotStatus   :: RobotStatus
+  , robotTask     :: RobotTask
   }
 
 instance Show Robot where
-  show (Robot rid name energy status) =
+  show (Robot rid name energy status task) =
     "-- " ++ name ++ " [" ++ show rid ++ "] --\n" ++
     "Energy: " ++ show energy ++
-    "\nStatus: " ++ show status
+    "\nStatus: " ++ show status ++
+    "\nTask: " ++ show task
 
 instance Eq Robot where
-  (Robot id1 _ _ _) == (Robot id2 _ _ _) =
+  (Robot id1 _ _ _ _) == (Robot id2 _ _ _ _) =
     id1 == id2
-
--- | Check if Robot is working.
-isWorking :: RobotStatus -> Bool
-isWorking Idle = False
-isWorking Mining = True
-isWorking Exploring = True
-isWorking Charging = False
-isWorking Repairing = False
 
 -- | Consumes energy from a Robot.
 consumeEnergy :: Int -> Robot -> Either GameError Robot
