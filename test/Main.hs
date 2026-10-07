@@ -27,6 +27,13 @@ main = hspec $ do
       rechargeEnergy (-1) lowEnergyRobot
         `shouldBe` Left InvalidEnergyAmount
 
+  describe "assignTask" $ do
+    let untaskedRobot = Robot 1 "Adam" 100 Idle Nothing
+    let taskedRobot = Robot 1 "Adam" 100 Idle (Just Explore)
+    it "should assign a task successfully" $ do
+      assignTask Explore untaskedRobot
+        `shouldBe` taskedRobot
+
   describe "errorMessage" $ do
     it "formats invalid energy errors" $ do
       errorMessage InvalidEnergyAmount

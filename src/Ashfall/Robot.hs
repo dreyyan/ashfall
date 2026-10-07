@@ -49,3 +49,7 @@ rechargeEnergy :: Int -> Robot -> Either GameError Robot
 rechargeEnergy x robot
   | x < 1 = Left (InvalidEnergyAmount)
   | otherwise = Right (robot { robotEnergy = min maxRobotEnergy (robotEnergy robot + x) })
+
+-- | Order a robot to work on a specific task.
+assignTask :: RobotTask -> Robot -> Robot
+assignTask task robot = robot { robotTask = Just task }
