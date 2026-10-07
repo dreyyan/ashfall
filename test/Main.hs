@@ -1,10 +1,12 @@
 module Main (main) where
 
 import Test.Hspec
-import Ashfall.Robot
+import Ashfall.Base
 import Ashfall.Error
+import Ashfall.Resource
+import Ashfall.Robot
 
--- Test fixtures
+-- Test fixtures: Robot
 readyRobot :: Robot
 readyRobot = Robot 1 "Adam" 100 Idle (Just Explore)
 
@@ -23,130 +25,182 @@ disabledRobot = readyRobot { robotStatus = Disabled }
 workingRobot :: Robot
 workingRobot = readyRobot { robotStatus = Working }
 
+-- Test fixtures: Base
+defaultBase :: Base
+defaultBase =
+  Base
+    { baseName = "Default"
+    , baseStorage =
+        Storage
+          { scrap = 0
+          , iron = 0
+          , crystal = 0
+          , fuel = 0
+          }
+    , baseCapacity = 100
+    }
 
 main :: IO()
 main = hspec $ do
-  describe "consumeEnergy" $ do
-    it "accepts valid energy consumption" $ do
-      consumeEnergy 10 readyRobot
-        `shouldBe` Right (readyRobot { robotEnergy = 90 })
-    it "accepts full energy consumption" $ do
-      consumeEnergy 100 readyRobot
-        `shouldBe` Right noEnergyRobot
-    it "accepts zero energy consumption" $ do
-      consumeEnergy 0 readyRobot
-        `shouldBe` Right readyRobot
-    it "rejects negative amounts" $ do
-      consumeEnergy (-10) readyRobot
-        `shouldBe` Left InvalidEnergyAmount
-    it "rejects if robot has insufficient energy" $ do
-      consumeEnergy 101 readyRobot
-        `shouldBe` Left InsufficientEnergy
+  describe "Robot" $ do
+    describe "consumeEnergy" $ do
+      it "accepts valid energy consumption" $ do
+        consumeEnergy 10 readyRobot
+          `shouldBe` Right (readyRobot { robotEnergy = 90 })
+      it "accepts full energy consumption" $ do
+        consumeEnergy 100 readyRobot
+          `shouldBe` Right noEnergyRobot
+      it "accepts zero energy consumption" $ do
+        consumeEnergy 0 readyRobot
+          `shouldBe` Right readyRobot
+      it "rejects negative amounts" $ do
+        consumeEnergy (-10) readyRobot
+          `shouldBe` Left InvalidEnergyAmount
+      it "rejects if robot has insufficient energy" $ do
+        consumeEnergy 101 readyRobot
+          `shouldBe` Left InsufficientEnergy
 
-  describe "rechargeEnergy" $ do
-    it "accepts valid energy recharge" $ do
-      rechargeEnergy (10) lowEnergyRobot
-        `shouldBe` Right readyRobot
-    it "recharging above maximum caps at 100" $ do
-      rechargeEnergy 100 lowEnergyRobot
-        `shouldBe` Right readyRobot
-    it "rejects non-positive amounts" $ do
-      rechargeEnergy (-1) lowEnergyRobot
-        `shouldBe` Left InvalidEnergyAmount
-    it "rejects zero recharge amount" $ do
-      rechargeEnergy (0) lowEnergyRobot
-        `shouldBe` Left InvalidEnergyAmount
+    describe "rechargeEnergy" $ do
+      it "accepts valid energy recharge" $ do
+        rechargeEnergy (10) lowEnergyRobot
+          `shouldBe` Right readyRobot
+      it "recharging above maximum caps at 100" $ do
+        rechargeEnergy 100 lowEnergyRobot
+          `shouldBe` Right readyRobot
+      it "rejects non-positive amounts" $ do
+        rechargeEnergy (-1) lowEnergyRobot
+          `shouldBe` Left InvalidEnergyAmount
+      it "rejects zero recharge amount" $ do
+        rechargeEnergy (0) lowEnergyRobot
+          `shouldBe` Left InvalidEnergyAmount
 
-  describe "taskAssignment" $ do
-    describe "assignTask" $ do
-      it "assigns a task successfully" $ do
-        assignTask Explore untaskedRobot
-          `shouldBe` readyRobot
-      it "assigns a task to disabled robot" $ do
-        assignTask Mine disabledRobot
-          `shouldBe` disabledRobot { robotTask = Just Mine }
-      it "replaces existing task" $ do
-        assignTask Mine readyRobot
-          `shouldBe` readyRobot { robotTask = Just Mine }
+    describe "taskAssignment" $ do
+      describe "assignTask" $ do
+        it "assigns a task successfully" $ do
+          assignTask Explore untaskedRobot
+            `shouldBe` readyRobot
+        it "assigns a task to disabled robot" $ do
+          assignTask Mine disabledRobot
+            `shouldBe` disabledRobot { robotTask = Just Mine }
+        it "replaces existing task" $ do
+          assignTask Mine readyRobot
+            `shouldBe` readyRobot { robotTask = Just Mine }
 
-    describe "unassignTask" $ do
-      it "unassigns a task successfully" $ do
-        unassignTask readyRobot
-          `shouldBe` Right untaskedRobot
-      it "rejects if no assigned task" $ do
-        unassignTask untaskedRobot
+      describe "unassignTask" $ do
+        it "unassigns a task successfully" $ do
+          unassignTask readyRobot
+            `shouldBe` Right untaskedRobot
+        it "rejects if no assigned task" $ do
+          unassignTask untaskedRobot
+            `shouldBe` Left NoTaskAssigned
+
+    describe "canStartTask" $ do
+      it "allows a ready robot to start a task" $ do
+        canStartTask readyRobot
+          `shouldBe` Right ()
+      it "rejects an already working robot" $ do
+        canStartTask workingRobot
+          `shouldBe` Left AlreadyWorking
+      it "rejects a disabled robot" $ do
+        canStartTask disabledRobot
+          `shouldBe` Left DisabledRobot
+      it "rejects a robot with no energy" $ do
+        canStartTask noEnergyRobot
+          `shouldBe` Left InsufficientEnergy
+      it "rejects an untasked robot" $ do
+        canStartTask untaskedRobot
           `shouldBe` Left NoTaskAssigned
 
-  describe "canStartTask" $ do
-    it "allows a ready robot to start a task" $ do
-      canStartTask readyRobot
-        `shouldBe` Right ()
-    it "rejects an already working robot" $ do
-      canStartTask workingRobot
-        `shouldBe` Left AlreadyWorking
-    it "rejects a disabled robot" $ do
-      canStartTask disabledRobot
-        `shouldBe` Left DisabledRobot
-    it "rejects a robot with no energy" $ do
-      canStartTask noEnergyRobot
-        `shouldBe` Left InsufficientEnergy
-    it "rejects an untasked robot" $ do
-      canStartTask untaskedRobot
-        `shouldBe` Left NoTaskAssigned
+    describe "startTask" $ do
+      it "starts a working robot" $ do
+        startTask readyRobot
+          `shouldBe` Right workingRobot
+      it "rejects an already working robot" $ do
+        startTask workingRobot
+          `shouldBe` Left AlreadyWorking
+      it "rejects if robot is disabled" $ do
+        startTask disabledRobot
+          `shouldBe` Left DisabledRobot
+      it "rejects if robot has no energy" $ do
+        startTask noEnergyRobot
+          `shouldBe` Left InsufficientEnergy
+      it "rejects if robot has no task assigned" $ do
+        startTask untaskedRobot
+          `shouldBe` Left NoTaskAssigned
 
-  describe "startTask" $ do
-    it "starts a working robot" $ do
-      startTask readyRobot
-        `shouldBe` Right workingRobot
-    it "rejects an already working robot" $ do
-      startTask workingRobot
-        `shouldBe` Left AlreadyWorking
-    it "rejects if robot is disabled" $ do
-      startTask disabledRobot
-        `shouldBe` Left DisabledRobot
-    it "rejects if robot has no energy" $ do
-      startTask noEnergyRobot
-        `shouldBe` Left InsufficientEnergy
-    it "rejects if robot has no task assigned" $ do
-      startTask untaskedRobot
-        `shouldBe` Left NoTaskAssigned
+    describe "isBusy" $ do
+      it "returns true if robot is working" $ do
+        isBusy workingRobot
+          `shouldBe` True
+      it "returns false if robot is not working" $ do
+        isBusy readyRobot
+          `shouldBe` False
 
-  describe "isBusy" $ do
-    it "returns true if robot is working" $ do
-      isBusy workingRobot
-        `shouldBe` True
-    it "returns false if robot is not working" $ do
-      isBusy readyRobot
-        `shouldBe` False
+    describe "stopTask" $ do
+      it "stops a working robot" $ do
+        stopTask workingRobot
+          `shouldBe` Right readyRobot    
+      it "rejects if robot is not working" $ do
+        stopTask readyRobot
+          `shouldBe` Left NotWorking
+      it "keeps the assigned task after stopping" $ do
+        stopTask workingRobot
+          `shouldBe` Right workingRobot { robotTask = Just Explore }
 
-  describe "stopTask" $ do
-    it "stops a working robot" $ do
-      stopTask workingRobot
-        `shouldBe` Right readyRobot    
-    it "rejects if robot is not working" $ do
-      stopTask readyRobot
-        `shouldBe` Left NotWorking
-    it "keeps the assigned task after stopping" $ do
-      stopTask workingRobot
-        `shouldBe` Right workingRobot { robotTask = Just Explore }
+  describe "Base" $ do
+    describe "addResources" $ do
+      it "adds scrap successfully" $ do
+        addResources Scrap 10 defaultBase
+          `shouldBe` Right (defaultBase { baseStorage = (baseStorage defaultBase) { scrap = 10 } })
+      it "adds iron successfully" $ do
+        addResources Iron 10 defaultBase
+          `shouldBe` Right (defaultBase { baseStorage = (baseStorage defaultBase) { iron = 10 } })
+      it "adds crystal successfully" $ do
+        addResources Crystal 10 defaultBase
+          `shouldBe` Right (defaultBase { baseStorage = (baseStorage defaultBase) { crystal = 10 } })
+      it "adds fuel successfully" $ do
+        addResources Fuel 10 defaultBase
+          `shouldBe` Right (defaultBase { baseStorage = (baseStorage defaultBase) { fuel = 10 } })
+      it "rejects zero amount" $ do
+        addResources Scrap 0 defaultBase
+          `shouldBe` Left InvalidResourceAmount
+      it "rejects negative amount" $ do
+        addResources Scrap (-1) defaultBase
+          `shouldBe` Left InvalidResourceAmount
 
-  describe "errorMessage" $ do
-    it "formats invalid energy errors" $ do
-      errorMessage InvalidEnergyAmount
-        `shouldBe` "> Invalid energy amount!"
+  describe "Resource" $ do
+    describe "resourceDescription" $ do
+      it "returns the scrap description" $ do
+        resourceDescription Scrap
+          `shouldBe` "Salvaged metal and machinery parts."
+      it "returns the iron description" $ do
+        resourceDescription Iron
+          `shouldBe` "A durable metal used for construction."
+      it "returns the crystal description" $ do
+        resourceDescription Crystal
+          `shouldBe` "A rare crystalline material."
+      it "returns the fuel description" $ do
+        resourceDescription Fuel
+          `shouldBe` "A combustible resource used to power machinery."
 
-    it "formats insufficient energy errors" $ do
-      errorMessage InsufficientEnergy
-        `shouldBe` "> Insufficient energy!"
+  describe "Error" $ do
+    describe "errorMessage" $ do
+      it "formats invalid energy errors" $ do
+        errorMessage InvalidEnergyAmount
+          `shouldBe` "> Invalid energy amount!"
 
-    it "formats no task assigned errors" $ do
-      errorMessage NoTaskAssigned
-        `shouldBe` "> No task assigned!"
+      it "formats insufficient energy errors" $ do
+        errorMessage InsufficientEnergy
+          `shouldBe` "> Insufficient energy!"
 
-    it "formats no robot disabled errors" $ do
-      errorMessage DisabledRobot
-        `shouldBe` "> Robot is disabled!"
+      it "formats no task assigned errors" $ do
+        errorMessage NoTaskAssigned
+          `shouldBe` "> No task assigned!"
 
-    it "formats already working errors" $ do
-      errorMessage AlreadyWorking
-        `shouldBe` "> Robot is already working!"
+      it "formats no robot disabled errors" $ do
+        errorMessage DisabledRobot
+          `shouldBe` "> Robot is disabled!"
+
+      it "formats already working errors" $ do
+        errorMessage AlreadyWorking
+          `shouldBe` "> Robot is already working!"

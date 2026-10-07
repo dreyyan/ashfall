@@ -7,6 +7,7 @@ data GameError
   | DisabledRobot
   | AlreadyWorking
   | NotWorking
+  | InvalidResourceAmount
   deriving (Eq, Show)
 
 errorMessage :: GameError -> String
@@ -16,3 +17,4 @@ errorMessage NoTaskAssigned = "> " ++ "No task assigned!"
 errorMessage DisabledRobot = "> " ++ "Robot is disabled!"
 errorMessage AlreadyWorking = "> " ++ "Robot is already working!"
 errorMessage NotWorking = "> " ++ "Robot is not working!"
+errorMessage InvalidResourceAmount = "> " ++ "Invalid resource amount!"

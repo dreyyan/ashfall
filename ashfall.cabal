@@ -65,6 +65,8 @@ library
         Ashfall.Constants
         Ashfall.Error
         Ashfall.Robot
+        Ashfall.Base
+        Ashfall.Resource
     build-depends:
         base ^>=4.20.2.0
     default-language: GHC2021

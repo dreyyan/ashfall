@@ -1,4 +1,5 @@
 module Ashfall.Robot where
+
 import Ashfall.Constants (maxRobotEnergy)
 import Ashfall.Error
 
@@ -87,3 +88,12 @@ stopTask robot =
   if isBusy robot == False
     then Left NotWorking
     else Right robot { robotStatus = Idle }
+
+-- | Performs the robot's assigned task.
+-- performTask :: Robot -> _
+-- performTask robot =
+--   case robotTask robot of
+--     Mine -> 
+--     Explore -> 
+--     Recharge -> 
+--     Repair -> 

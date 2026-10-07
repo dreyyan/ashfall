@@ -10,8 +10,8 @@ data Resource
   | Fuel
   deriving (Show, Eq)
 
-  -- | Retrieve a resource's description.
-resourceDescription :: Resource :: String
+-- | Retrieve a resource's description.
+resourceDescription :: Resource -> String
 resourceDescription Scrap     = "Salvaged metal and machinery parts."
 resourceDescription Iron      = "A durable metal used for construction."
 resourceDescription Crystal   = "A rare crystalline material."
