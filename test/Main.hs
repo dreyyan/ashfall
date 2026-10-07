@@ -59,57 +59,76 @@ main = hspec $ do
 
   describe "taskAssignment" $ do
     describe "assignTask" $ do
-      it "should assign a task successfully" $ do
+      it "assigns a task successfully" $ do
         assignTask Explore untaskedRobot
           `shouldBe` readyRobot
-      it "should assign a task to disabled robot" $ do
+      it "assigns a task to disabled robot" $ do
         assignTask Mine disabledRobot
           `shouldBe` disabledRobot { robotTask = Just Mine }
-      it "should replace existing task" $ do
+      it "replaces existing task" $ do
         assignTask Mine readyRobot
           `shouldBe` readyRobot { robotTask = Just Mine }
 
     describe "unassignTask" $ do
-      it "should unassign a task successfully" $ do
+      it "unassigns a task successfully" $ do
         unassignTask readyRobot
           `shouldBe` Right untaskedRobot
-      it "should reject if no assigned task" $ do
+      it "rejects if no assigned task" $ do
         unassignTask untaskedRobot
           `shouldBe` Left NoTaskAssigned
 
-  describe "canExecuteTask" $ do
-    it "allows a ready robot to execute a task" $ do
-      canExecuteTask readyRobot
+  describe "canStartTask" $ do
+    it "allows a ready robot to start a task" $ do
+      canStartTask readyRobot
         `shouldBe` Right ()
-    it "should reject an already working robot" $ do
-      canExecuteTask workingRobot
+    it "rejects an already working robot" $ do
+      canStartTask workingRobot
         `shouldBe` Left AlreadyWorking
-    it "should reject a disabled robot" $ do
-      canExecuteTask disabledRobot
+    it "rejects a disabled robot" $ do
+      canStartTask disabledRobot
         `shouldBe` Left DisabledRobot
-    it "should reject a robot with no energy" $ do
-      canExecuteTask noEnergyRobot
+    it "rejects a robot with no energy" $ do
+      canStartTask noEnergyRobot
         `shouldBe` Left InsufficientEnergy
-    it "should reject an untasked robot" $ do
-      canExecuteTask untaskedRobot
+    it "rejects an untasked robot" $ do
+      canStartTask untaskedRobot
         `shouldBe` Left NoTaskAssigned
 
-  describe "executeTask" $ do
-    it "should execute task successfully" $ do
-      executeTask readyRobot
+  describe "startTask" $ do
+    it "starts a working robot" $ do
+      startTask readyRobot
         `shouldBe` Right workingRobot
-    it "should reject an already working robot" $ do
-      executeTask workingRobot
+    it "rejects an already working robot" $ do
+      startTask workingRobot
         `shouldBe` Left AlreadyWorking
-    it "should reject if robot is disabled" $ do
-      executeTask disabledRobot
+    it "rejects if robot is disabled" $ do
+      startTask disabledRobot
         `shouldBe` Left DisabledRobot
-    it "should reject if robot has no energy" $ do
-      executeTask noEnergyRobot
+    it "rejects if robot has no energy" $ do
+      startTask noEnergyRobot
         `shouldBe` Left InsufficientEnergy
-    it "should reject if robot has no task assigned" $ do
-      executeTask untaskedRobot
+    it "rejects if robot has no task assigned" $ do
+      startTask untaskedRobot
         `shouldBe` Left NoTaskAssigned
+
+  describe "isBusy" $ do
+    it "returns true if robot is working" $ do
+      isBusy workingRobot
+        `shouldBe` True
+    it "returns false if robot is not working" $ do
+      isBusy readyRobot
+        `shouldBe` False
+
+  describe "stopTask" $ do
+    it "stops a working robot" $ do
+      stopTask workingRobot
+        `shouldBe` Right readyRobot    
+    it "rejects if robot is not working" $ do
+      stopTask readyRobot
+        `shouldBe` Left NotWorking
+    it "keeps the assigned task after stopping" $ do
+      stopTask workingRobot
+        `shouldBe` Right workingRobot { robotTask = Just Explore }
 
   describe "errorMessage" $ do
     it "formats invalid energy errors" $ do

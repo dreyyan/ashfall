@@ -61,17 +61,29 @@ unassignTask robot =
     Nothing -> Left NoTaskAssigned
     _ -> Right robot { robotTask = Nothing }
 
--- | Checks whether a robot is capable of performing its assigned task.
-canExecuteTask :: Robot -> Either GameError ()
-canExecuteTask robot
+-- | Checks whether a robot is capable of starting its assigned task.
+canStartTask :: Robot -> Either GameError ()
+canStartTask robot
   | robotStatus robot == Disabled = Left DisabledRobot
   | robotStatus robot == Working = Left AlreadyWorking
   | robotEnergy robot <= 0 = Left InsufficientEnergy
   | robotTask robot == Nothing = Left NoTaskAssigned
   | otherwise = Right ()
 
--- | Execute a robot's assigned task.
-executeTask :: Robot -> Either GameError Robot
-executeTask robot = do
-  _ <- canExecuteTask robot -- if robot cannot execute task, `Left` error propagates.
+-- | Start a robot's assigned task.
+startTask :: Robot -> Either GameError Robot
+startTask robot = do
+  _ <- canStartTask robot -- if robot cannot execute task, `Left` error propagates.
   Right robot { robotStatus = Working }
+
+-- | Checks whether a robot is currently working.
+isBusy :: Robot -> Bool
+isBusy robot = if robotStatus robot == Working then True else False
+
+-- | Stop a robot's assigned task.
+stopTask :: Robot -> Either GameError Robot
+stopTask robot =
+  -- Check if robot is currently working on a task.
+  if isBusy robot == False
+    then Left NotWorking
+    else Right robot { robotStatus = Idle }
