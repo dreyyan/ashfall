@@ -35,3 +35,21 @@ addResources resource amount base = do
               Fuel    -> oldStorage { fuel = fuel oldStorage + amount }
 
       Right base { baseStorage = newStorage }
+
+-- | Consumes resouces from the player's base.
+consumeResources :: Resource -> Int -> Base -> Either GameError Base
+consumeResources resource amount base = do
+  let isValidAmount = amount > 0
+
+  if not isValidAmount
+    then Left InvalidResourceAmount
+    else do
+      let oldStorage = baseStorage base
+          newStorage =
+            case resource of
+              Scrap   -> oldStorage { scrap = scrap oldStorage - amount }
+              Iron    -> oldStorage { iron = iron oldStorage - amount }
+              Crystal -> oldStorage { crystal = crystal oldStorage - amount }
+              Fuel    -> oldStorage { fuel = fuel oldStorage - amount }
+
+      Right base { baseStorage = newStorage }

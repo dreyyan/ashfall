@@ -40,6 +40,20 @@ defaultBase =
     , baseCapacity = 100
     }
 
+richBase :: Base
+richBase =
+  Base
+    { baseName = "Default"
+    , baseStorage =
+        Storage
+          { scrap = 25
+          , iron = 25
+          , crystal = 25
+          , fuel = 25
+          }
+    , baseCapacity = 100
+    }
+
 main :: IO()
 main = hspec $ do
   describe "Robot" $ do
@@ -166,6 +180,25 @@ main = hspec $ do
           `shouldBe` Left InvalidResourceAmount
       it "rejects negative amount" $ do
         addResources Scrap (-1) defaultBase
+          `shouldBe` Left InvalidResourceAmount
+    describe "consumeResources" $ do
+      it "consumes scrap successfully" $ do
+        consumeResources Scrap 10 richBase
+          `shouldBe` Right (richBase { baseStorage = (baseStorage richBase) { scrap = 15 } })
+      it "consumes iron successfully" $ do
+        consumeResources Iron 10 richBase
+          `shouldBe` Right (richBase { baseStorage = (baseStorage richBase) { iron = 15 } })
+      it "consumes crystal successfully" $ do
+        consumeResources Crystal 10 richBase
+          `shouldBe` Right (richBase { baseStorage = (baseStorage richBase) { crystal = 15 } })
+      it "consumes fuel successfully" $ do
+        consumeResources Fuel 10 richBase
+          `shouldBe` Right (richBase { baseStorage = (baseStorage richBase) { fuel = 15 } })
+      it "rejects zero amount" $ do
+        consumeResources Scrap 0 richBase
+          `shouldBe` Left InvalidResourceAmount
+      it "rejects negative amount" $ do
+        consumeResources Scrap (-1) richBase
           `shouldBe` Left InvalidResourceAmount
 
   describe "Resource" $ do
