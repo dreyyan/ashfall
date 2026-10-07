@@ -5,6 +5,7 @@ data GameError
   | InsufficientEnergy
   | NoTaskAssigned
   | DisabledRobot
+  | AlreadyWorking
   deriving (Eq, Show)
 
 errorMessage :: GameError -> String
@@ -12,3 +13,4 @@ errorMessage InvalidEnergyAmount = "> " ++ "Invalid energy amount!"
 errorMessage InsufficientEnergy = "> " ++ "Insufficient energy!"
 errorMessage NoTaskAssigned = "> " ++ "No task assigned!"
 errorMessage DisabledRobot = "> " ++ "Robot is disabled!"
+errorMessage AlreadyWorking = "> " ++ "Robot is already working!"

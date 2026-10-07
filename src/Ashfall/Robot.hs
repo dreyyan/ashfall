@@ -65,6 +65,7 @@ unassignTask robot =
 canExecuteTask :: Robot -> Either GameError ()
 canExecuteTask robot
   | robotStatus robot == Disabled = Left DisabledRobot
+  | robotStatus robot == Working = Left AlreadyWorking
   | robotEnergy robot <= 0 = Left InsufficientEnergy
   | robotTask robot == Nothing = Left NoTaskAssigned
   | otherwise = Right ()
