@@ -1,6 +1,6 @@
 module Ashfall.Robot where
 import Ashfall.Constants (maxRobotEnergy)
-import Ashfall.Error (GameError (InvalidEnergyAmount, InsufficientEnergy, NoTaskAssigned))
+import Ashfall.Error
 
 -- | Represents a Robot's status.
 data RobotStatus
@@ -50,7 +50,7 @@ rechargeEnergy x robot
   | x < 1 = Left InvalidEnergyAmount
   | otherwise = Right (robot { robotEnergy = min maxRobotEnergy (robotEnergy robot + x) })
 
--- | Order a robot to work on a specific task.
+-- | Assign a specific task to a robot.
 assignTask :: RobotTask -> Robot -> Robot
 assignTask task robot = robot { robotTask = Just task }
 
@@ -62,9 +62,15 @@ unassignTask robot =
     _ -> Right robot { robotTask = Nothing }
 
 -- | Checks whether a robot is capable of performing its assigned task.
-canExecuteTask :: Robot -> Bool
+canExecuteTask :: Robot -> Either GameError ()
 canExecuteTask robot
-  | robotStatus robot == Disabled = False
-  | robotEnergy robot <= 0 = False
-  | robotTask robot == Nothing = False
-  | otherwise = True
+  | robotStatus robot == Disabled = Left DisabledRobot
+  | robotEnergy robot <= 0 = Left InsufficientEnergy
+  | robotTask robot == Nothing = Left NoTaskAssigned
+  | otherwise = Right ()
+
+-- | Execute a robot's assigned task.
+executeTask :: Robot -> Either GameError Robot
+executeTask robot = do
+  _ <- canExecuteTask robot -- if robot cannot execute task, `Left` error propagates.
+  Right robot { robotStatus = Working }
