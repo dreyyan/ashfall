@@ -60,3 +60,11 @@ unassignTask robot =
   case robotTask robot of
     Nothing -> Left NoTaskAssigned
     _ -> Right robot { robotTask = Nothing }
+
+-- | Checks whether a robot is capable of performing its assigned task.
+canExecuteTask :: Robot -> Bool
+canExecuteTask robot
+  | robotStatus robot == Disabled = False
+  | robotEnergy robot <= 0 = False
+  | robotTask robot == Nothing = False
+  | otherwise = True
