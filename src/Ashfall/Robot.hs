@@ -23,13 +23,13 @@ data Robot = Robot
   , robotName     :: String
   , robotEnergy   :: Int
   , robotStatus   :: RobotStatus
-  , robotTask     :: RobotTask
+  , robotTask     :: Maybe RobotTask
   }
 
 instance Show Robot where
   show (Robot rid name energy status task) =
-    "-- " ++ name ++ " [" ++ show rid ++ "] --\n" ++
-    "Energy: " ++ show energy ++
+    "-- " ++ name ++ " [" ++ show rid ++ "] --" ++
+    "\nEnergy: " ++ show energy ++
     "\nStatus: " ++ show status ++
     "\nTask: " ++ show task
 
