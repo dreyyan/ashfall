@@ -1,6 +1,6 @@
 module Ashfall.Robot where
 import Ashfall.Constants (maxRobotEnergy)
-import Ashfall.Error (GameError (InvalidEnergyAmount, InsufficientEnergy))
+import Ashfall.Error (GameError (InvalidEnergyAmount, InsufficientEnergy, NoTaskAssigned))
 
 -- | Represents a Robot's status.
 data RobotStatus
@@ -40,16 +40,23 @@ instance Eq Robot where
 -- | Consumes energy from a Robot.
 consumeEnergy :: Int -> Robot -> Either GameError Robot
 consumeEnergy x robot
-  | x < 0 = Left (InvalidEnergyAmount)
-  | x > robotEnergy robot = Left (InsufficientEnergy)
+  | x < 0 = Left InvalidEnergyAmount
+  | x > robotEnergy robot = Left InsufficientEnergy
   | otherwise = Right (robot { robotEnergy = robotEnergy robot - x })
 
 -- | Recharges a robot's energy.
 rechargeEnergy :: Int -> Robot -> Either GameError Robot
 rechargeEnergy x robot
-  | x < 1 = Left (InvalidEnergyAmount)
+  | x < 1 = Left InvalidEnergyAmount
   | otherwise = Right (robot { robotEnergy = min maxRobotEnergy (robotEnergy robot + x) })
 
 -- | Order a robot to work on a specific task.
 assignTask :: RobotTask -> Robot -> Robot
 assignTask task robot = robot { robotTask = Just task }
+
+-- | Unassign task from a robot.
+unassignTask :: Robot -> Either GameError Robot
+unassignTask robot =
+  case robotTask robot of
+    Nothing -> Left NoTaskAssigned
+    _ -> Right robot { robotTask = Nothing }
