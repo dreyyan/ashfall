@@ -3,6 +3,9 @@ module Ashfall.Base where
 import Ashfall.Error
 import Ashfall.Resource
 
+import Data.Map.Strict (Map)
+import qualified Data.Map.Strict as Map
+
 -- | Represents the player's base.
 data Base = Base
   { baseName      :: String
@@ -11,12 +14,9 @@ data Base = Base
   } deriving (Show, Eq)
 
 -- | Represents the player's current storage.
-data Storage = Storage
-  { scrap     :: Int
-  , iron      :: Int
-  , crystal   :: Int
-  , fuel      :: Int
-  } deriving (Show, Eq)
+newtype Storage = Storage
+  { resources :: Map Resource Int }
+  deriving (Show, Eq)
 
 -- | Add resources to the player's base.
 addResources :: Resource -> Int -> Base -> Either GameError Base
@@ -27,12 +27,11 @@ addResources resource amount base = do
     then Left InvalidResourceAmount
     else do
       let oldStorage = baseStorage base
-          newStorage =
-            case resource of
-              Scrap   -> oldStorage { scrap = scrap oldStorage + amount }
-              Iron    -> oldStorage { iron = iron oldStorage + amount }
-              Crystal -> oldStorage { crystal = crystal oldStorage + amount }
-              Fuel    -> oldStorage { fuel = fuel oldStorage + amount }
+          oldResources = resources oldStorage
+          currentAmount = Map.findWithDefault 0 resource oldResources
+          newAmount = currentAmount + amount
+          newResources = Map.insert resource newAmount oldResources
+          newStorage = Storage newResources;
 
       Right base { baseStorage = newStorage }
 
@@ -45,11 +44,25 @@ consumeResources resource amount base = do
     then Left InvalidResourceAmount
     else do
       let oldStorage = baseStorage base
-          newStorage =
-            case resource of
-              Scrap   -> oldStorage { scrap = scrap oldStorage - amount }
-              Iron    -> oldStorage { iron = iron oldStorage - amount }
-              Crystal -> oldStorage { crystal = crystal oldStorage - amount }
-              Fuel    -> oldStorage { fuel = fuel oldStorage - amount }
+          oldResources = resources oldStorage
+          currentAmount = Map.findWithDefault 0 resource oldResources
+          newAmount = currentAmount - amount
+          newResources = Map.insert resource newAmount oldResources
+          newStorage = Storage newResources;
 
       Right base { baseStorage = newStorage }
+
+-- | Calculate the capcaity cost of a resource amount.
+calculateCost :: (Resource, Int) -> Int
+calculateCost (resource, amount) =
+  amount * resourceCapacityCost resource
+
+-- | Calculate how much storage is used.
+storageUsed :: Storage -> Int
+storageUsed storage =
+  let resourceList = Map.toList (resources storage)
+  in sum (map calculateCost resourceList)
+
+-- | Calculate remaining capcity.
+remainingCapacity :: Base -> Int
+remainingCapacity base = baseCapacity base - storageUsed (baseStorage base)

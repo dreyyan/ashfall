@@ -68,6 +68,8 @@ library
         Ashfall.Base
         Ashfall.Resource
     build-depends:
+        containers ^>=0.7,
+        containers ^>=0.7,
         base ^>=4.20.2.0
     default-language: GHC2021
 
@@ -86,6 +88,8 @@ test-suite ashfall-test
     main-is: Main.hs
     hs-source-dirs: test
     build-depends:
+        containers ^>=0.7,
+        containers ^>=0.7,
         base,
         hspec,
         ashfall
