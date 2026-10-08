@@ -1,58 +1,14 @@
 module Main (main) where
 
 import Test.Hspec
+
 import Ashfall.Base
 import Ashfall.Error
 import Ashfall.Resource
 import Ashfall.Robot
+import Fixtures
 
--- Test fixtures: Robot
-readyRobot :: Robot
-readyRobot = Robot 1 "Adam" 100 Idle (Just Explore)
-
-lowEnergyRobot :: Robot
-lowEnergyRobot = readyRobot { robotEnergy = 90 }
-
-noEnergyRobot :: Robot
-noEnergyRobot = readyRobot { robotEnergy = 0 }
-
-untaskedRobot :: Robot
-untaskedRobot = readyRobot { robotTask = Nothing }
-
-disabledRobot :: Robot
-disabledRobot = readyRobot { robotStatus = Disabled }
-
-workingRobot :: Robot
-workingRobot = readyRobot { robotStatus = Working }
-
--- Test fixtures: Base
-defaultBase :: Base
-defaultBase =
-  Base
-    { baseName = "Default"
-    , baseStorage =
-        Storage
-          { scrap = 0
-          , iron = 0
-          , crystal = 0
-          , fuel = 0
-          }
-    , baseCapacity = 100
-    }
-
-richBase :: Base
-richBase =
-  Base
-    { baseName = "Default"
-    , baseStorage =
-        Storage
-          { scrap = 25
-          , iron = 25
-          , crystal = 25
-          , fuel = 25
-          }
-    , baseCapacity = 100
-    }
+import qualified Data.Map.Strict as Map
 
 main :: IO()
 main = hspec $ do
@@ -165,16 +121,28 @@ main = hspec $ do
     describe "addResources" $ do
       it "adds scrap successfully" $ do
         addResources Scrap 10 defaultBase
-          `shouldBe` Right (defaultBase { baseStorage = (baseStorage defaultBase) { scrap = 10 } })
+          `shouldBe` Right
+            (defaultBase
+              { baseStorage = Storage (Map.fromList [(Scrap, 10)])
+              })
       it "adds iron successfully" $ do
         addResources Iron 10 defaultBase
-          `shouldBe` Right (defaultBase { baseStorage = (baseStorage defaultBase) { iron = 10 } })
+          `shouldBe` Right
+            (defaultBase
+              { baseStorage = Storage (Map.fromList [(Iron, 10)])
+              })
       it "adds crystal successfully" $ do
         addResources Crystal 10 defaultBase
-          `shouldBe` Right (defaultBase { baseStorage = (baseStorage defaultBase) { crystal = 10 } })
+          `shouldBe` Right
+            (defaultBase
+              { baseStorage = Storage (Map.fromList [(Crystal, 10)])
+              })
       it "adds fuel successfully" $ do
         addResources Fuel 10 defaultBase
-          `shouldBe` Right (defaultBase { baseStorage = (baseStorage defaultBase) { fuel = 10 } })
+          `shouldBe` Right
+            (defaultBase
+              { baseStorage = Storage (Map.fromList [(Fuel, 10)])
+              })
       it "rejects zero amount" $ do
         addResources Scrap 0 defaultBase
           `shouldBe` Left InvalidResourceAmount
@@ -184,22 +152,51 @@ main = hspec $ do
     describe "consumeResources" $ do
       it "consumes scrap successfully" $ do
         consumeResources Scrap 10 richBase
-          `shouldBe` Right (richBase { baseStorage = (baseStorage richBase) { scrap = 15 } })
+          `shouldBe` Right
+            (richBase
+              { baseStorage = Storage (Map.insert Scrap 10 (resources (baseStorage richBase)))
+              })
       it "consumes iron successfully" $ do
         consumeResources Iron 10 richBase
-          `shouldBe` Right (richBase { baseStorage = (baseStorage richBase) { iron = 15 } })
+          `shouldBe` Right
+            (richBase
+              { baseStorage = Storage (Map.insert Iron 5 (resources (baseStorage richBase)))
+              })
       it "consumes crystal successfully" $ do
         consumeResources Crystal 10 richBase
-          `shouldBe` Right (richBase { baseStorage = (baseStorage richBase) { crystal = 15 } })
+          `shouldBe` Right
+            (richBase
+              { baseStorage = Storage (Map.insert Crystal 0 (resources (baseStorage richBase)))
+              })
       it "consumes fuel successfully" $ do
         consumeResources Fuel 10 richBase
-          `shouldBe` Right (richBase { baseStorage = (baseStorage richBase) { fuel = 15 } })
+          `shouldBe` Right
+            (richBase
+              { baseStorage = Storage (Map.insert Fuel 0 (resources (baseStorage richBase)))
+              })
       it "rejects zero amount" $ do
         consumeResources Scrap 0 richBase
           `shouldBe` Left InvalidResourceAmount
       it "rejects negative amount" $ do
         consumeResources Scrap (-1) richBase
           `shouldBe` Left InvalidResourceAmount
+    describe "calculateCost" $ do
+      it "calculates scrap capacity cost" $ do
+        calculateCost (Scrap, 10) `shouldBe` 10
+      it "calculates iron capacity cost" $ do
+        calculateCost (Iron, 10) `shouldBe` 20
+      it "calculates crystal capacity cost" $ do
+        calculateCost (Crystal, 10) `shouldBe` 30
+      it "calculates fuel capacity cost" $ do
+        calculateCost (Fuel, 10) `shouldBe` 20
+    describe "storageUsed" $ do
+      it "calculates total used storage capacity" $ do
+        storageUsed (baseStorage richBase) `shouldBe` 100
+      it "returns zero for empty storage" $ do
+        storageUsed (Storage Map.empty) `shouldBe` 0
+    describe "remainingCapacity" $ do
+      it "calculates remaining base capacity" $ do
+        remainingCapacity defaultBase `shouldBe` 100
 
   describe "Resource" $ do
     describe "resourceDescription" $ do
@@ -215,6 +212,15 @@ main = hspec $ do
       it "returns the fuel description" $ do
         resourceDescription Fuel
           `shouldBe` "A combustible resource used to power machinery."
+  describe "resourceCapacityCost" $ do
+    it "returns scrap capacity cost" $ do
+      resourceCapacityCost Scrap `shouldBe` 1
+    it "returns iron capacity cost" $ do
+      resourceCapacityCost Iron `shouldBe` 2
+    it "returns crystal capacity cost" $ do
+      resourceCapacityCost Crystal `shouldBe` 3
+    it "returns fuel capacity cost" $ do
+      resourceCapacityCost Fuel `shouldBe` 2
 
   describe "Error" $ do
     describe "errorMessage" $ do
