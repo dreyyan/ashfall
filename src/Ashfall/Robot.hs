@@ -2,6 +2,7 @@ module Ashfall.Robot where
 
 import Ashfall.Constants (maxRobotEnergy)
 import Ashfall.Error
+import Ashfall.Base
 
 -- | Represents a Robot's status.
 data RobotStatus
@@ -25,17 +26,21 @@ data Robot = Robot
   , robotEnergy   :: Int
   , robotStatus   :: RobotStatus
   , robotTask     :: Maybe RobotTask
+  , robotCapacity :: Int
+  , robotStorage  :: Storage
   }
 
 instance Show Robot where
-  show (Robot rid name energy status task) =
+  show (Robot rid name energy status task capacity storage) =
     "-- " ++ name ++ " [" ++ show rid ++ "] --" ++
     "\nEnergy: " ++ show energy ++
     "\nStatus: " ++ show status ++
-    "\nTask: " ++ show task
+    "\nTask: " ++ show task ++
+    "\nCapacity: " ++ show capacity ++
+    "\nStorage: " ++ show storage
 
 instance Eq Robot where
-  (Robot id1 _ _ _ _) == (Robot id2 _ _ _ _) =
+  (Robot id1 _ _ _ _ _ _) == (Robot id2 _ _ _ _ _ _) =
     id1 == id2
 
 -- | Consumes energy from a Robot.
@@ -88,6 +93,8 @@ stopTask robot =
   if isBusy robot == False
     then Left NotWorking
     else Right robot { robotStatus = Idle }
+
+
 
 -- | Performs the robot's assigned task.
 -- performTask :: Robot -> _

@@ -8,7 +8,7 @@ import qualified Data.Map.Strict as Map
 
 -- Test fixtures: Robot
 readyRobot :: Robot
-readyRobot = Robot 1 "Adam" 100 Idle (Just Explore)
+readyRobot = Robot 1 "Adam" 100 Idle (Just Explore) 10 (Storage Map.empty)
 
 lowEnergyRobot :: Robot
 lowEnergyRobot = readyRobot { robotEnergy = 90 }
