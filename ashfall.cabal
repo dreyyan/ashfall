@@ -70,6 +70,8 @@ library
     build-depends:
         containers ^>=0.7,
         containers ^>=0.7,
+        containers ^>=0.7,
+        containers ^>=0.7,
         base ^>=4.20.2.0
     default-language: GHC2021
 

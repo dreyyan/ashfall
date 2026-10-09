@@ -2,6 +2,7 @@ module Main (main) where
 
 import Test.Hspec
 
+
 import Ashfall.Base
 import Ashfall.Error
 import Ashfall.Resource
@@ -125,8 +126,16 @@ main = hspec $ do
             (defaultBase
               { baseStorage = Storage (Map.fromList [(Scrap, 10)])
               })
+          `shouldBe` Right
+            (defaultBase
+              { baseStorage = Storage (Map.fromList [(Scrap, 10)])
+              })
       it "adds iron successfully" $ do
         addResources Iron 10 defaultBase
+          `shouldBe` Right
+            (defaultBase
+              { baseStorage = Storage (Map.fromList [(Iron, 10)])
+              })
           `shouldBe` Right
             (defaultBase
               { baseStorage = Storage (Map.fromList [(Iron, 10)])
@@ -137,8 +146,16 @@ main = hspec $ do
             (defaultBase
               { baseStorage = Storage (Map.fromList [(Crystal, 10)])
               })
+          `shouldBe` Right
+            (defaultBase
+              { baseStorage = Storage (Map.fromList [(Crystal, 10)])
+              })
       it "adds fuel successfully" $ do
         addResources Fuel 10 defaultBase
+          `shouldBe` Right
+            (defaultBase
+              { baseStorage = Storage (Map.fromList [(Fuel, 10)])
+              })
           `shouldBe` Right
             (defaultBase
               { baseStorage = Storage (Map.fromList [(Fuel, 10)])
@@ -156,8 +173,16 @@ main = hspec $ do
             (richBase
               { baseStorage = Storage (Map.insert Scrap 10 (resources (baseStorage richBase)))
               })
+          `shouldBe` Right
+            (richBase
+              { baseStorage = Storage (Map.insert Scrap 10 (resources (baseStorage richBase)))
+              })
       it "consumes iron successfully" $ do
         consumeResources Iron 10 richBase
+          `shouldBe` Right
+            (richBase
+              { baseStorage = Storage (Map.insert Iron 5 (resources (baseStorage richBase)))
+              })
           `shouldBe` Right
             (richBase
               { baseStorage = Storage (Map.insert Iron 5 (resources (baseStorage richBase)))
@@ -168,8 +193,16 @@ main = hspec $ do
             (richBase
               { baseStorage = Storage (Map.insert Crystal 0 (resources (baseStorage richBase)))
               })
+          `shouldBe` Right
+            (richBase
+              { baseStorage = Storage (Map.insert Crystal 0 (resources (baseStorage richBase)))
+              })
       it "consumes fuel successfully" $ do
         consumeResources Fuel 10 richBase
+          `shouldBe` Right
+            (richBase
+              { baseStorage = Storage (Map.insert Fuel 0 (resources (baseStorage richBase)))
+              })
           `shouldBe` Right
             (richBase
               { baseStorage = Storage (Map.insert Fuel 0 (resources (baseStorage richBase)))
