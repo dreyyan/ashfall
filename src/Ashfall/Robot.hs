@@ -94,7 +94,10 @@ stopTask robot =
     then Left NotWorking
     else Right robot { robotStatus = Idle }
 
-
+-- | Calculate robot's remaining capacity.
+robotRemainingCapacity :: Robot -> Int
+robotRemainingCapacity robot =
+  robotCapacity robot - storageUsed (robotStorage robot)
 
 -- | Performs the robot's assigned task.
 -- performTask :: Robot -> _

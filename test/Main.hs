@@ -117,7 +117,9 @@ main = hspec $ do
       it "keeps the assigned task after stopping" $ do
         stopTask workingRobot
           `shouldBe` Right workingRobot { robotTask = Just Explore }
-
+    describe "robotRemainingCapacity" $ do
+      it "calculates remaining robot capacity" $ do
+        robotRemainingCapacity readyRobot `shouldBe` 15
   describe "Base" $ do
     describe "addResources" $ do
       it "adds scrap successfully" $ do
@@ -214,7 +216,6 @@ main = hspec $ do
       it "rejects resources when storage is already full" $ do
         canStore Scrap 1 richBase
           `shouldBe` False
-      
 
   describe "Resource" $ do
     describe "resourceDescription" $ do
@@ -245,19 +246,15 @@ main = hspec $ do
       it "formats invalid energy errors" $ do
         errorMessage InvalidEnergyAmount
           `shouldBe` "> Invalid energy amount!"
-
       it "formats insufficient energy errors" $ do
         errorMessage InsufficientEnergy
           `shouldBe` "> Insufficient energy!"
-
       it "formats no task assigned errors" $ do
         errorMessage NoTaskAssigned
           `shouldBe` "> No task assigned!"
-
       it "formats no robot disabled errors" $ do
         errorMessage DisabledRobot
           `shouldBe` "> Robot is disabled!"
-
       it "formats already working errors" $ do
         errorMessage AlreadyWorking
           `shouldBe` "> Robot is already working!"

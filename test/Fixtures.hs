@@ -5,10 +5,11 @@ import Ashfall.Resource
 import Ashfall.Robot
 
 import qualified Data.Map.Strict as Map
+import Ashfall.Constants (robotDefaultCapacity)
 
 -- Test fixtures: Robot
 readyRobot :: Robot
-readyRobot = Robot 1 "Adam" 100 Idle (Just Explore) 10 (Storage Map.empty)
+readyRobot = Robot 1 "Adam" 100 Idle (Just Explore) robotDefaultCapacity (Storage Map.empty)
 
 lowEnergyRobot :: Robot
 lowEnergyRobot = readyRobot { robotEnergy = 90 }
