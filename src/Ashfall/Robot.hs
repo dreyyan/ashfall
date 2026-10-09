@@ -1,8 +1,9 @@
 module Ashfall.Robot where
 
+import Ashfall.Base
 import Ashfall.Constants (maxRobotEnergy)
 import Ashfall.Error
-import Ashfall.Base
+import Ashfall.Storage
 
 -- | Represents a Robot's status.
 data RobotStatus

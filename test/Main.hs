@@ -2,11 +2,11 @@ module Main (main) where
 
 import Test.Hspec
 
-
 import Ashfall.Base
 import Ashfall.Error
 import Ashfall.Resource
 import Ashfall.Robot
+import Ashfall.Storage
 import Fixtures
 
 import qualified Data.Map.Strict as Map
@@ -117,9 +117,11 @@ main = hspec $ do
       it "keeps the assigned task after stopping" $ do
         stopTask workingRobot
           `shouldBe` Right workingRobot { robotTask = Just Explore }
+
     describe "robotRemainingCapacity" $ do
       it "calculates remaining robot capacity" $ do
         robotRemainingCapacity readyRobot `shouldBe` 15
+
   describe "Base" $ do
     describe "addResources" $ do
       it "adds scrap successfully" $ do
@@ -152,6 +154,7 @@ main = hspec $ do
       it "rejects negative amount" $ do
         addResources Scrap (-1) defaultBase
           `shouldBe` Left InvalidResourceAmount
+
     describe "consumeResources" $ do
       it "consumes scrap successfully" $ do
         consumeResources Scrap 10 richBase
@@ -183,6 +186,7 @@ main = hspec $ do
       it "rejects negative amount" $ do
         consumeResources Scrap (-1) richBase
           `shouldBe` Left InvalidResourceAmount
+
     describe "calculateCost" $ do
       it "calculates scrap capacity cost" $ do
         calculateCost (Scrap, 10) `shouldBe` 10
@@ -192,14 +196,17 @@ main = hspec $ do
         calculateCost (Crystal, 10) `shouldBe` 30
       it "calculates fuel capacity cost" $ do
         calculateCost (Fuel, 10) `shouldBe` 20
+
     describe "storageUsed" $ do
       it "calculates total used storage capacity" $ do
         storageUsed (baseStorage richBase) `shouldBe` 100
       it "returns zero for empty storage" $ do
         storageUsed (Storage Map.empty) `shouldBe` 0
+
     describe "remainingCapacity" $ do
       it "calculates remaining base capacity" $ do
         remainingCapacity defaultBase `shouldBe` 100
+
     describe "canStore" $ do
       it "accepts resources within available capacity" $ do
         canStore Scrap 10 defaultBase
@@ -231,6 +238,7 @@ main = hspec $ do
       it "returns the fuel description" $ do
         resourceDescription Fuel
           `shouldBe` "A combustible resource used to power machinery."
+
     describe "resourceCapacityCost" $ do
       it "returns scrap capacity cost" $ do
         resourceCapacityCost Scrap `shouldBe` 1

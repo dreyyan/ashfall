@@ -2,8 +2,8 @@ module Ashfall.Base where
 
 import Ashfall.Error
 import Ashfall.Resource
+import Ashfall.Storage
 
-import Data.Map.Strict (Map)
 import qualified Data.Map.Strict as Map
 
 -- | Represents the player's base.
@@ -12,11 +12,6 @@ data Base = Base
   , baseStorage   :: Storage
   , baseCapacity  :: Int
   } deriving (Show, Eq)
-
--- | Represents the player's current storage.
-newtype Storage = Storage
-  { resources :: Map Resource Int }
-  deriving (Show, Eq)
 
 -- | Add resources to the player's base.
 addResources :: Resource -> Int -> Base -> Either GameError Base

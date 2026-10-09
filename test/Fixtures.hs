@@ -1,11 +1,12 @@
 module Fixtures where
 
 import Ashfall.Base
+import Ashfall.Constants (robotDefaultCapacity)
 import Ashfall.Resource
 import Ashfall.Robot
+import Ashfall.Storage
 
 import qualified Data.Map.Strict as Map
-import Ashfall.Constants (robotDefaultCapacity)
 
 -- Test fixtures: Robot
 readyRobot :: Robot

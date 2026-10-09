@@ -62,15 +62,13 @@ library
     import: warnings
     hs-source-dirs: src
     exposed-modules:
+        Ashfall.Base
         Ashfall.Constants
         Ashfall.Error
         Ashfall.Robot
-        Ashfall.Base
         Ashfall.Resource
+        Ashfall.Storage
     build-depends:
-        containers ^>=0.7,
-        containers ^>=0.7,
-        containers ^>=0.7,
         containers ^>=0.7,
         base ^>=4.20.2.0
     default-language: GHC2021
@@ -80,6 +78,7 @@ executable ashfall
     main-is: Main.hs
     hs-source-dirs: app
     build-depends:
+        containers ^>=0.7,
         base ^>=4.20.2.0,
         ashfall
     default-language: GHC2021
