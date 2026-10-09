@@ -198,6 +198,23 @@ main = hspec $ do
     describe "remainingCapacity" $ do
       it "calculates remaining base capacity" $ do
         remainingCapacity defaultBase `shouldBe` 100
+    describe "canStore" $ do
+      it "accepts resources within available capacity" $ do
+        canStore Scrap 10 defaultBase
+          `shouldBe` True
+      it "accepts resources that exactly fill capacity" $ do
+        canStore Scrap 100 defaultBase
+          `shouldBe` True
+      it "rejects resources exceeding capacity" $ do
+        canStore Scrap 101 defaultBase
+          `shouldBe` False
+      it "rejects zero amounts" $ do
+        canStore Scrap 0 defaultBase
+          `shouldBe` False
+      it "rejects resources when storage is already full" $ do
+        canStore Scrap 1 richBase
+          `shouldBe` False
+      
 
   describe "Resource" $ do
     describe "resourceDescription" $ do
@@ -213,15 +230,15 @@ main = hspec $ do
       it "returns the fuel description" $ do
         resourceDescription Fuel
           `shouldBe` "A combustible resource used to power machinery."
-  describe "resourceCapacityCost" $ do
-    it "returns scrap capacity cost" $ do
-      resourceCapacityCost Scrap `shouldBe` 1
-    it "returns iron capacity cost" $ do
-      resourceCapacityCost Iron `shouldBe` 2
-    it "returns crystal capacity cost" $ do
-      resourceCapacityCost Crystal `shouldBe` 3
-    it "returns fuel capacity cost" $ do
-      resourceCapacityCost Fuel `shouldBe` 2
+    describe "resourceCapacityCost" $ do
+      it "returns scrap capacity cost" $ do
+        resourceCapacityCost Scrap `shouldBe` 1
+      it "returns iron capacity cost" $ do
+        resourceCapacityCost Iron `shouldBe` 2
+      it "returns crystal capacity cost" $ do
+        resourceCapacityCost Crystal `shouldBe` 3
+      it "returns fuel capacity cost" $ do
+        resourceCapacityCost Fuel `shouldBe` 2
 
   describe "Error" $ do
     describe "errorMessage" $ do

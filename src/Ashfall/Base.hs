@@ -66,3 +66,8 @@ storageUsed storage =
 -- | Calculate remaining capcity.
 remainingCapacity :: Base -> Int
 remainingCapacity base = baseCapacity base - storageUsed (baseStorage base)
+
+-- | Checks whether base can store `n` `resource`.
+canStore :: Resource -> Int -> Base -> Bool
+canStore resource n base =
+  n > 0 && calculateCost (resource, n) <= remainingCapacity base
