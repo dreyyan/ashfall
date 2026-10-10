@@ -12,6 +12,7 @@ import Fixtures
 import qualified Data.Map.Strict as Map
 import Ashfall.Transfer (depositResources)
 import Ashfall.Constants (robotDefaultCapacity)
+import Ashfall.Location (resourceWeights, LocationType (Scrapyard, IronQuarry, CrystalCavern, GasStation), getResourceChance, Location (locationResources), scrapyard, availableResources, canFindResource, totalResourceChance, validateLocation)
 
 main :: IO()
 main = hspec $ do
@@ -89,6 +90,191 @@ main = hspec $ do
     describe "remainingCapacity" $ do
       it "calculates remaining base capacity" $ do
         remainingCapacity defaultBase `shouldBe` 100
+
+  describe "Location" $ do
+    describe "resourceWeights" $ do
+      it "returns correct weights for Scrapyard" $ do
+        resourceWeights Scrapyard
+          `shouldBe` [(Scrap, 75), (Iron, 20), (Fuel, 5)]
+      it "returns correct weights for IronQuarry" $ do
+        resourceWeights IronQuarry
+          `shouldBe` [(Scrap, 20), (Iron, 75), (Crystal, 5)]
+      it "returns correct weights for CrystalCavern" $ do
+        resourceWeights CrystalCavern
+          `shouldBe` [(Scrap, 10), (Iron, 30), (Crystal, 60)]
+      it "returns correct weights for GasStation" $ do
+        resourceWeights GasStation
+          `shouldBe` [(Scrap, 20), (Iron, 10), (Fuel, 70)]
+
+  describe "getResourceChance" $ do
+    it "returns the correct probability for Scrap" $ do
+      getResourceChance Scrap scrapyard
+        `shouldBe` 75
+    it "returns the correct probability for Iron" $ do
+      getResourceChance Iron scrapyard
+        `shouldBe` 20
+    it "returns the correct probability for Fuel" $ do
+      getResourceChance Fuel scrapyard
+        `shouldBe` 5
+    it "returns 0 for a resource not found at the location" $ do
+      getResourceChance Crystal scrapyard
+        `shouldBe` 0
+    it "returns 0 for a location with no resources" $ do
+      getResourceChance Scrap (scrapyard { locationResources = Map.empty })
+        `shouldBe` 0
+
+  describe "availableResources" $ do
+    it "returns all available resources at a location" $ do
+      availableResources scrapyard
+        `shouldMatchList` [Scrap, Iron, Fuel]
+    it "returns an empty list when no resources exist" $ do
+      availableResources (scrapyard { locationResources = Map.empty })
+        `shouldBe` []
+    it "excludes resources with a 0% probability" $ do
+      availableResources
+        (scrapyard
+          { locationResources =
+              Map.fromList
+                [ (Scrap, 75)
+                , (Iron, 25)
+                , (Crystal, 0)
+                ]
+          })
+        `shouldMatchList` [Scrap, Iron]
+
+  describe "canFindResource" $ do
+    it "returns True when a resource is available" $ do
+      canFindResource Scrap scrapyard
+        `shouldBe` True
+      canFindResource Iron scrapyard
+        `shouldBe` True
+      canFindResource Fuel scrapyard
+        `shouldBe` True
+    it "returns False when a resource is unavailable" $ do
+      canFindResource Crystal scrapyard
+        `shouldBe` False
+    it "returns False when a resource has a 0% probability" $ do
+      canFindResource Crystal
+        (scrapyard
+          { locationResources =
+              Map.fromList
+                [ (Scrap, 75)
+                , (Iron, 25)
+                , (Crystal, 0)
+                ]
+          })
+        `shouldBe` False
+    it "returns False when the location has no resources" $ do
+      canFindResource Scrap
+        (scrapyard { locationResources = Map.empty })
+        `shouldBe` False
+
+  describe "totalResourceChance" $ do
+    it "returns 100 for a valid location" $ do
+      totalResourceChance scrapyard
+        `shouldBe` 100
+    it "returns 0 for an empty resource map" $ do
+      totalResourceChance
+        (scrapyard { locationResources = Map.empty })
+        `shouldBe` 0
+    it "returns the total even if probabilities do not sum to 100" $ do
+      totalResourceChance
+        (scrapyard
+          { locationResources =
+              Map.fromList
+                [ (Scrap, 40)
+                , (Iron, 30)
+                , (Fuel, 10)
+                ]
+          })
+        `shouldBe` 80
+    it "sums probabilities even when some are negative" $ do
+      totalResourceChance
+        (scrapyard
+          { locationResources =
+              Map.fromList
+                [ (Scrap, 80)
+                , (Iron, -10)
+                ]
+          })
+        `shouldBe` 70
+
+  describe "validateLocation" $ do
+    it "accepts a valid location" $ do
+      validateLocation scrapyard
+        `shouldBe` True
+    it "accepts a resource with exactly 100% probability" $ do
+      validateLocation
+        (scrapyard
+          { locationResources =
+              Map.singleton Scrap 100
+          })
+        `shouldBe` True
+    it "accepts resources with 0% probability" $ do
+      validateLocation
+        (scrapyard
+          { locationResources =
+              Map.fromList
+                [ (Scrap, 75)
+                , (Iron, 25)
+                , (Crystal, 0)
+                ]
+          })
+        `shouldBe` True
+    it "rejects probabilities totaling less than 100" $ do
+      validateLocation
+        (scrapyard
+          { locationResources =
+              Map.fromList
+                [ (Scrap, 50)
+                , (Iron, 30)
+                ]
+          })
+        `shouldBe` False
+    it "rejects probabilities totaling more than 100" $ do
+      validateLocation
+        (scrapyard
+          { locationResources =
+              Map.fromList
+                [ (Scrap, 80)
+                , (Iron, 40)
+                ]
+          })
+        `shouldBe` False
+    it "rejects negative probabilities" $ do
+      validateLocation
+        (scrapyard
+          { locationResources =
+              Map.fromList
+                [ (Scrap, 110)
+                , (Iron, -10)
+                ]
+          })
+        `shouldBe` False
+    it "rejects individual probabilities exceeding 100" $ do
+      validateLocation
+        (scrapyard
+          { locationResources =
+              Map.fromList
+                [ (Scrap, 120)
+                , (Iron, -20)
+                ]
+          })
+        `shouldBe` False
+    it "rejects an empty resource map" $ do
+      validateLocation
+        (scrapyard { locationResources = Map.empty })
+        `shouldBe` False
+    it "rejects locations containing only zero probabilities" $ do
+      validateLocation
+        (scrapyard
+          { locationResources =
+              Map.fromList
+                [ (Scrap, 0)
+                , (Iron, 0)
+                ]
+          })
+        `shouldBe` False
 
   describe "Resource" $ do
     describe "resourceDescription" $ do
