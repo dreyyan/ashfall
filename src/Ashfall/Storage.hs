@@ -62,6 +62,3 @@ canStore :: Resource -> Int -> Int -> Storage -> Bool
 canStore resource amount capacity storage =
   amount > 0 &&
   calculateCost (resource, amount) <= capacity - storageUsed storage
-
--- | Move resources from robot to base.
--- depositResources :: Robot -> Resource -> Int -> Base -> Either GameError

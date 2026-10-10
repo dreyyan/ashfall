@@ -10,6 +10,7 @@ import Ashfall.Storage
 import Fixtures
 
 import qualified Data.Map.Strict as Map
+import Ashfall.Transfer (depositResources)
 
 main :: IO()
 main = hspec $ do
@@ -381,6 +382,40 @@ main = hspec $ do
       it "accepts resources within partially occupied storage" $ do
         canStore Scrap 10 100 smallStorage
           `shouldBe` True
+
+  describe "Transfer" $ do
+    describe "depositResources" $ do
+      it "transfers resources from robot to base" $ do
+        depositResources loadedRobot Scrap 3 defaultBase
+          `shouldBe` Right
+            ( loadedRobot
+                { robotStorage = Storage
+                    (Map.insert Scrap 2 (resources (robotStorage loadedRobot)))
+                }
+            , defaultBase
+                { baseStorage = Storage (Map.singleton Scrap 3)
+                }
+            )
+      it "allows depositing all available resources" $ do
+        depositResources loadedRobot Scrap 5 defaultBase
+          `shouldBe` Right
+            ( loadedRobot
+                { robotStorage = Storage
+                    (Map.insert Scrap 0 (resources (robotStorage loadedRobot)))
+                }
+            , defaultBase
+                { baseStorage = Storage (Map.singleton Scrap 5)
+                }
+            )
+      it "rejects deposits when robot has insufficient resources" $ do
+        depositResources loadedRobot Scrap 10 defaultBase
+          `shouldBe` Left InsufficientResources
+      it "rejects deposits when base has insufficient capacity" $ do
+        depositResources loadedRobot Scrap 5 richBase
+          `shouldBe` Left InsufficientCapacity
+      it "rejects zero amounts" $ do
+        depositResources loadedRobot Scrap 0 defaultBase
+          `shouldBe` Left InvalidResourceAmount
 
   describe "Error" $ do
     describe "errorMessage" $ do

@@ -68,6 +68,7 @@ library
         Ashfall.Robot
         Ashfall.Resource
         Ashfall.Storage
+        Ashfall.Transfer
     build-depends:
         containers ^>=0.7,
         base ^>=4.20.2.0
