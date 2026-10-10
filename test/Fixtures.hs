@@ -7,10 +7,11 @@ import Ashfall.Robot
 import Ashfall.Storage
 
 import qualified Data.Map.Strict as Map
+import Ashfall.Equipment (MiningEquipment(BasicDrill))
 
 -- Test fixtures: Robot
 readyRobot :: Robot
-readyRobot = Robot 1 "Adam" 100 Idle (Just Explore) robotDefaultCapacity (Storage Map.empty)
+readyRobot = Robot 1 "Adam" 100 Idle (Just Explore) robotDefaultCapacity (Storage Map.empty) BasicDrill
 
 lowEnergyRobot :: Robot
 lowEnergyRobot = readyRobot { robotEnergy = 90 }

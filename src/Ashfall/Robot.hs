@@ -4,6 +4,7 @@ import Ashfall.Constants (maxRobotEnergy, miningEnergyCost)
 import Ashfall.Error
 import Ashfall.Resource
 import Ashfall.Storage
+import Ashfall.Equipment (MiningEquipment)
 
 -- | Represents a Robot's status.
 data RobotStatus
@@ -22,26 +23,28 @@ data RobotTask
 
 -- | Represents a Robot in Ashfall.
 data Robot = Robot
-  { robotId       :: Int
-  , robotName     :: String
-  , robotEnergy   :: Int
-  , robotStatus   :: RobotStatus
-  , robotTask     :: Maybe RobotTask
-  , robotCapacity :: Int
-  , robotStorage  :: Storage
+  { robotId         :: Int
+  , robotName       :: String
+  , robotEnergy     :: Int
+  , robotStatus     :: RobotStatus
+  , robotTask       :: Maybe RobotTask
+  , robotCapacity   :: Int
+  , robotStorage    :: Storage
+  , robotEquipment  :: MiningEquipment
   }
 
 instance Show Robot where
-  show (Robot rid name energy status task capacity storage) =
+  show (Robot rid name energy status task capacity storage equipment) =
     "-- " ++ name ++ " [" ++ show rid ++ "] --" ++
     "\nEnergy: " ++ show energy ++
     "\nStatus: " ++ show status ++
     "\nTask: " ++ show task ++
     "\nCapacity: " ++ show capacity ++
-    "\nStorage: " ++ show storage
+    "\nStorage: " ++ show storage ++
+    "\nEquipment: " ++ show equipment
 
 instance Eq Robot where
-  (Robot id1 _ _ _ _ _ _) == (Robot id2 _ _ _ _ _ _) =
+  (Robot id1 _ _ _ _ _ _ _) == (Robot id2 _ _ _ _ _ _ _) =
     id1 == id2
 
 -- | Consumes energy from a Robot.
@@ -139,5 +142,4 @@ performTask robot = do
 mineResources :: Robot -> Either GameError Robot
 mineResources robot = do
   updatedRobot <- consumeEnergy miningEnergyCost robot
-  _ <- addToInventory robot Scrap 1
-  Right updatedRobot
+  addToInventory updatedRobot Scrap 1

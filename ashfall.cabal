@@ -65,14 +65,17 @@ library
         Ashfall.Base
         Ashfall.Constants
         Ashfall.Error
+        Ashfall.Equipment
         Ashfall.Robot
         Ashfall.Location
         Ashfall.Resource
         Ashfall.Storage
         Ashfall.Transfer
+        Ashfall.Mining
     build-depends:
         containers ^>=0.7,
-        base ^>=4.20.2.0
+        base ^>=4.20.2.0,
+        random ^>=1.3,
     default-language: GHC2021
 
 executable ashfall

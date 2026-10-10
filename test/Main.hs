@@ -3,16 +3,18 @@ module Main (main) where
 import Test.Hspec
 
 import Ashfall.Base
+import Ashfall.Constants (robotDefaultCapacity)
+import Ashfall.Equipment
 import Ashfall.Error
+import Ashfall.Location (resourceWeights, LocationType (Scrapyard, IronQuarry, CrystalCavern, AbandonedRefinery), getResourceChance, Location (locationResources), scrapyard, availableResources, canFindResource, totalResourceChance, validateLocation)
 import Ashfall.Resource
 import Ashfall.Robot
 import Ashfall.Storage
+import Ashfall.Transfer (depositResources)
 import Fixtures
 
 import qualified Data.Map.Strict as Map
-import Ashfall.Transfer (depositResources)
-import Ashfall.Constants (robotDefaultCapacity)
-import Ashfall.Location (resourceWeights, LocationType (Scrapyard, IronQuarry, CrystalCavern, GasStation), getResourceChance, Location (locationResources), scrapyard, availableResources, canFindResource, totalResourceChance, validateLocation)
+import Ashfall.Mining (selectResource, calculateMiningYield, validateMining)
 
 main :: IO()
 main = hspec $ do
@@ -91,6 +93,71 @@ main = hspec $ do
       it "calculates remaining base capacity" $ do
         remainingCapacity defaultBase `shouldBe` 100
 
+  describe "Equipment" $ do
+    describe "equipmentEnergyCost" $ do
+      it "returns 1 for BasicDrill" $ do
+        equipmentEnergyCost BasicDrill
+          `shouldBe` 1
+      it "returns 2 for IndustrialDrill" $ do
+        equipmentEnergyCost IndustrialDrill
+          `shouldBe` 2
+      it "returns 3 for AdvancedExtractor" $ do
+        equipmentEnergyCost AdvancedExtractor
+          `shouldBe` 3
+
+    describe "equipmentYield" $ do
+      it "returns (1, 1) for BasicDrill" $ do
+        equipmentYield BasicDrill
+          `shouldBe` (1, 1)
+      it "returns (2, 4) for IndustrialDrill" $ do
+        equipmentYield IndustrialDrill
+          `shouldBe` (2, 4)
+      it "returns (4, 7) for AdvancedExtractor" $ do
+        equipmentYield AdvancedExtractor
+          `shouldBe` (4, 7)
+
+    describe "equipmentMineableResources" $ do
+      it "returns Scrap for BasicDrill" $ do
+        equipmentMineableResources BasicDrill
+          `shouldMatchList` [Scrap]
+      it "returns Scrap, Iron, and Fuel for IndustrialDrill" $ do
+        equipmentMineableResources IndustrialDrill
+          `shouldMatchList` [Scrap, Iron, Fuel]
+      it "returns all resources for AdvancedExtractor" $ do
+        equipmentMineableResources AdvancedExtractor
+          `shouldMatchList` [Scrap, Iron, Crystal, Fuel]
+
+    describe "canMineResource" $ do
+      it "allows BasicDrill to mine Scrap" $ do
+        canMineResource Scrap BasicDrill
+          `shouldBe` True
+      it "rejects unsupported resources for BasicDrill" $ do
+        canMineResource Iron BasicDrill
+          `shouldBe` False
+        canMineResource Crystal BasicDrill
+          `shouldBe` False
+        canMineResource Fuel BasicDrill
+          `shouldBe` False
+      it "allows IndustrialDrill to mine supported resources" $ do
+        canMineResource Scrap IndustrialDrill
+          `shouldBe` True
+        canMineResource Iron IndustrialDrill
+          `shouldBe` True
+        canMineResource Fuel IndustrialDrill
+          `shouldBe` True
+      it "rejects Crystal for IndustrialDrill" $ do
+        canMineResource Crystal IndustrialDrill
+          `shouldBe` False
+      it "allows AdvancedExtractor to mine all resources" $ do
+        canMineResource Scrap AdvancedExtractor
+          `shouldBe` True
+        canMineResource Iron AdvancedExtractor
+          `shouldBe` True
+        canMineResource Crystal AdvancedExtractor
+          `shouldBe` True
+        canMineResource Fuel AdvancedExtractor
+          `shouldBe` True
+
   describe "Location" $ do
     describe "resourceWeights" $ do
       it "returns correct weights for Scrapyard" $ do
@@ -102,8 +169,8 @@ main = hspec $ do
       it "returns correct weights for CrystalCavern" $ do
         resourceWeights CrystalCavern
           `shouldBe` [(Scrap, 10), (Iron, 30), (Crystal, 60)]
-      it "returns correct weights for GasStation" $ do
-        resourceWeights GasStation
+      it "returns correct weights for AbandonedRefinery" $ do
+        resourceWeights AbandonedRefinery
           `shouldBe` [(Scrap, 20), (Iron, 10), (Fuel, 70)]
 
   describe "getResourceChance" $ do
@@ -275,6 +342,97 @@ main = hspec $ do
                 ]
           })
         `shouldBe` False
+
+  describe "Mining" $ do
+    describe "selectResource" $ do
+      it "selects Scrap at the minimum roll" $
+        selectResource scrapyard 1 `shouldBe` Just Scrap
+      it "selects Scrap within its probability range" $
+        selectResource scrapyard 50 `shouldBe` Just Scrap
+      it "selects Scrap at its upper boundary" $
+        selectResource scrapyard 75 `shouldBe` Just Scrap
+      it "selects Iron at its lower boundary" $
+        selectResource scrapyard 76 `shouldBe` Just Iron
+      it "selects Iron within its probability range" $
+        selectResource scrapyard 85 `shouldBe` Just Iron
+      it "selects Iron at its upper boundary" $
+        selectResource scrapyard 95 `shouldBe` Just Iron
+      it "selects Fuel at its lower boundary" $
+        selectResource scrapyard 96 `shouldBe` Just Fuel
+      it "selects Fuel at the maximum roll" $
+        selectResource scrapyard 100 `shouldBe` Just Fuel
+      it "rejects a zero roll" $
+        selectResource scrapyard 0 `shouldBe` Nothing
+      it "rejects a negative roll" $
+        selectResource scrapyard (-1) `shouldBe` Nothing
+      it "rejects a roll above 100" $
+        selectResource scrapyard 101 `shouldBe` Nothing
+      it "rejects a location with probabilities totaling less than 100" $
+        selectResource (scrapyard {locationResources = Map.fromList [(Scrap, 50), (Iron, 20)]}) 25 `shouldBe` Nothing
+      it "rejects a location with probabilities totaling more than 100" $
+        selectResource (scrapyard {locationResources = Map.fromList [(Scrap, 80), (Iron, 30)]}) 25 `shouldBe` Nothing
+      it "rejects a location with negative probabilities" $
+        selectResource (scrapyard {locationResources = Map.fromList [(Scrap, 110), (Iron, -10)]}) 25 `shouldBe` Nothing
+      it "rejects a location with no resources" $
+        selectResource (scrapyard {locationResources = Map.empty}) 25 `shouldBe` Nothing
+
+    describe "calculateMiningYield" $ do
+      it "returns 1 for BasicDrill with roll 1" $
+        calculateMiningYield BasicDrill 1 `shouldBe` 1
+      it "returns 1 for BasicDrill with roll 5" $
+        calculateMiningYield BasicDrill 5 `shouldBe` 1
+      it "returns minimum yield for IndustrialDrill" $
+        calculateMiningYield IndustrialDrill 1 `shouldBe` 2
+      it "returns middle yield for IndustrialDrill" $
+        calculateMiningYield IndustrialDrill 2 `shouldBe` 3
+      it "returns maximum yield for IndustrialDrill" $
+        calculateMiningYield IndustrialDrill 3 `shouldBe` 4
+      it "wraps IndustrialDrill yield back to minimum" $
+        calculateMiningYield IndustrialDrill 4 `shouldBe` 2
+      it "returns minimum yield for AdvancedExtractor" $
+        calculateMiningYield AdvancedExtractor 1 `shouldBe` 4
+      it "returns second yield for AdvancedExtractor" $
+        calculateMiningYield AdvancedExtractor 2 `shouldBe` 5
+      it "returns third yield for AdvancedExtractor" $
+        calculateMiningYield AdvancedExtractor 3 `shouldBe` 6
+      it "returns maximum yield for AdvancedExtractor" $
+        calculateMiningYield AdvancedExtractor 4 `shouldBe` 7
+      it "wraps AdvancedExtractor yield back to minimum" $
+        calculateMiningYield AdvancedExtractor 5 `shouldBe` 4
+
+    describe "validateMining" $ do
+      let miningRobot = readyRobot
+            { robotStatus = Working
+            , robotTask = Just Mine
+            , robotEnergy = 100
+            , robotEquipment = AdvancedExtractor
+            }
+      it "allows a robot with valid equipment to mine Scrap" $
+        validateMining miningRobot scrapyard Scrap `shouldBe` Right ()
+      it "allows a robot with valid equipment to mine Iron" $
+        validateMining miningRobot scrapyard Iron `shouldBe` Right ()
+      it "rejects a disabled robot" $
+        validateMining (miningRobot {robotStatus = Disabled}) scrapyard Scrap `shouldBe` Left DisabledRobot
+      it "rejects a robot without an assigned task" $
+        validateMining (miningRobot {robotTask = Nothing}) scrapyard Scrap `shouldBe` Left NoTaskAssigned
+      it "rejects a robot assigned to Explore" $
+        validateMining (miningRobot {robotTask = Just Explore}) scrapyard Scrap `shouldBe` Left NoTaskAssigned
+      it "rejects a robot assigned to Recharge" $
+        validateMining (miningRobot {robotTask = Just Recharge}) scrapyard Scrap `shouldBe` Left NoTaskAssigned
+      it "rejects a resource unavailable at the location" $
+        validateMining miningRobot scrapyard Crystal `shouldBe` Left ResourceUnavailable
+      it "rejects mining Iron with BasicDrill" $
+        validateMining (miningRobot {robotEquipment = BasicDrill}) scrapyard Iron `shouldBe` Left UnsupportedResource
+      it "rejects mining Fuel with BasicDrill" $
+        validateMining (miningRobot {robotEquipment = BasicDrill}) scrapyard Fuel `shouldBe` Left UnsupportedResource
+      it "rejects mining Crystal with IndustrialDrill at a crystal-bearing location" $
+        validateMining (miningRobot {robotEquipment = IndustrialDrill}) (scrapyard {locationResources = Map.fromList [(Crystal, 100)]}) Crystal `shouldBe` Left UnsupportedResource
+      it "rejects a robot with insufficient energy" $
+        validateMining (miningRobot {robotEnergy = 2}) scrapyard Scrap `shouldBe` Left InsufficientEnergy
+      it "allows mining when energy exactly equals equipment cost" $
+        validateMining (miningRobot {robotEnergy = 3}) scrapyard Scrap `shouldBe` Right ()
+      it "allows BasicDrill to mine Scrap with exactly 1 energy" $
+        validateMining (miningRobot {robotEquipment = BasicDrill, robotEnergy = 1}) scrapyard Scrap `shouldBe` Right ()
 
   describe "Resource" $ do
     describe "resourceDescription" $ do

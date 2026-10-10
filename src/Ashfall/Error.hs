@@ -10,6 +10,8 @@ data GameError
   | InvalidResourceAmount
   | InsufficientResources
   | InsufficientCapacity
+  | ResourceUnavailable
+  | UnsupportedResource
   deriving (Eq, Show)
 
 errorMessage :: GameError -> String
@@ -22,3 +24,5 @@ errorMessage NotWorking = "> " ++ "Robot is not working!"
 errorMessage InvalidResourceAmount = "> " ++ "Invalid resource amount!"
 errorMessage InsufficientResources = "> " ++ "Insufficient resources!"
 errorMessage InsufficientCapacity = "> " ++ "Insufficient capacity!"
+errorMessage ResourceUnavailable = "> Resource not found at this location!"
+errorMessage UnsupportedResource = "> Mining equipment cannot extract this resource!"

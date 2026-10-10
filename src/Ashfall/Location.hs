@@ -16,10 +16,10 @@ data Location = Location
 
 -- | Represents a location's type.
 data LocationType
-  = Scrapyard       -- 75% Scrap / 20% Iron / 5% Fuel
-  | IronQuarry      -- 20% Scrap / 75% Iron / 5% Crystal
-  | CrystalCavern   -- 10% Scrap / 30% Iron / 60% Crystal
-  | GasStation      -- 20% Scrap / 10% Iron / 70% Fuel
+  = Scrapyard           -- 75% Scrap / 20% Iron / 5% Fuel
+  | IronQuarry          -- 20% Scrap / 75% Iron / 5% Crystal
+  | CrystalCavern       -- 10% Scrap / 30% Iron / 60% Crystal
+  | AbandonedRefinery   -- 20% Scrap / 10% Iron / 70% Fuel
   deriving (Eq, Ord, Show)
 
 scrapyard :: Location
@@ -64,9 +64,9 @@ crystalCavern = Location
 gasStation :: Location
 gasStation = Location
   { locationId = "LOC-004"
-  , locationName = "Gas Station"
-  , locationDescription = "A derelict refueling station with partially intact underground fuel reserves."
-  , locationType = GasStation
+  , locationName = "Abandoned Refinery"
+  , locationDescription = "An abandoned fuel refinery with rusted storage tanks, decaying pipelines, and remnants of valuable fuel reserves."
+  , locationType = AbandonedRefinery
   , locationResources = Map.fromList
       [ (Scrap, 20)
       , (Iron, 10)
@@ -85,7 +85,7 @@ resourceWeights IronQuarry =
 resourceWeights CrystalCavern =
   [(Scrap, 10), (Iron, 30), (Crystal, 60)]
 
-resourceWeights GasStation =
+resourceWeights AbandonedRefinery =
   [(Scrap, 20), (Iron, 10), (Fuel, 70)]
 
 -- | Returns the probability (0-100%) of finding a resource at a given location.
