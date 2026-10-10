@@ -1,6 +1,6 @@
 module Ashfall.Robot where
 
-import Ashfall.Constants (maxRobotEnergy)
+import Ashfall.Constants (maxRobotEnergy, miningEnergyCost)
 import Ashfall.Error
 import Ashfall.Resource
 import Ashfall.Storage
@@ -72,8 +72,16 @@ unassignTask robot =
 canStartTask :: Robot -> Either GameError ()
 canStartTask robot
   | robotStatus robot == Disabled = Left DisabledRobot
-  | robotStatus robot == Working = Left AlreadyWorking
+  | isBusy robot = Left AlreadyWorking
   | robotEnergy robot <= 0 = Left InsufficientEnergy
+  | robotTask robot == Nothing = Left NoTaskAssigned
+  | otherwise = Right ()
+
+-- | Checks whether a robot can perform its assigned task.
+canPerformTask :: Robot -> Either GameError ()
+canPerformTask robot
+  | robotStatus robot == Disabled = Left DisabledRobot
+  | not (isBusy robot) = Left NotWorking
   | robotTask robot == Nothing = Left NoTaskAssigned
   | otherwise = Right ()
 
@@ -116,10 +124,20 @@ removeFromInventory robot resource n = do
   Right robot { robotStorage = newStorage }
 
 -- | Performs the robot's assigned task.
-performTask :: Robot -> _
-performTask robot =
+performTask :: Robot -> Either GameError Robot
+performTask robot = do
+  canPerformTask robot
+
   case robotTask robot of
-    Mine -> 
-    -- Explore -> 
-    -- Recharge -> 
-    -- Repair -> 
+    Just Mine -> mineResources robot
+    -- Explore -> explore robot
+    -- Recharge -> recharge robot
+    -- Repair -> repair robot
+    Nothing -> Left NoTaskAssigned
+
+-- | Performs one tick of mining.
+mineResources :: Robot -> Either GameError Robot
+mineResources robot = do
+  updatedRobot <- consumeEnergy miningEnergyCost robot
+  _ <- addToInventory robot Scrap 1
+  Right updatedRobot

@@ -46,6 +46,14 @@ fullRobot =
         Storage (Map.singleton Scrap robotDefaultCapacity)
     }
 
+exactLimitRobot :: Robot
+exactLimitRobot =
+  readyRobot
+    { robotEnergy = 10
+    , robotStorage =
+        Storage (Map.singleton Scrap (robotDefaultCapacity - 1))
+    }
+
 -- Test fixtures: Base
 defaultBase :: Base
 defaultBase =

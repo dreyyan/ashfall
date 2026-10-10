@@ -11,6 +11,7 @@ import Fixtures
 
 import qualified Data.Map.Strict as Map
 import Ashfall.Transfer (depositResources)
+import Ashfall.Constants (robotDefaultCapacity)
 
 main :: IO()
 main = hspec $ do
@@ -82,6 +83,23 @@ main = hspec $ do
       it "rejects an untasked robot" $ do
         canStartTask untaskedRobot
           `shouldBe` Left NoTaskAssigned
+
+    describe "canPerformTask" $ do
+      it "allows a working robot with an assigned task" $ do
+        canPerformTask workingRobot
+          `shouldBe` Right ()
+      it "rejects an idle robot" $ do
+        canPerformTask readyRobot
+          `shouldBe` Left NotWorking
+      it "rejects a disabled robot" $ do
+        canPerformTask disabledRobot
+          `shouldBe` Left DisabledRobot
+      it "rejects a working robot without an assigned task" $ do
+        canPerformTask (untaskedRobot { robotStatus = Working })
+          `shouldBe` Left NoTaskAssigned
+      it "allows a working robot with no energy to attempt a task" $ do
+        canPerformTask (noEnergyRobot { robotStatus = Working })
+          `shouldBe` Right ()
 
     describe "startTask" $ do
       it "starts a working robot" $ do
@@ -198,6 +216,29 @@ main = hspec $ do
           `shouldBe` Right (loadedRobot
             { robotStorage = Storage
                 (Map.insert Scrap 3 (resources (robotStorage loadedRobot))) })
+
+    describe "mineResources" $ do
+      it "mines resources successfully" $ do
+        mineResources readyRobot
+          `shouldBe` Right (readyRobot {
+            robotEnergy = 90,
+            robotStorage = Storage (Map.singleton Scrap 1)
+          })
+      it "rejects mining with insufficient energy" $ do
+        mineResources noEnergyRobot
+          `shouldBe` Left InsufficientEnergy
+      it "rejects mining when inventory is full" $ do
+        mineResources fullRobot
+          `shouldBe` Left InsufficientCapacity
+      it "accepts mining at exact energy and capacity limits" $ do
+        mineResources exactLimitRobot
+          `shouldBe` Right
+            (exactLimitRobot
+              { robotEnergy = 0
+              , robotStorage =
+                  Storage (Map.singleton Scrap robotDefaultCapacity)
+              })
+      
 
   describe "Base" $ do
     describe "addResources" $ do
