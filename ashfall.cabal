@@ -66,6 +66,7 @@ library
         Ashfall.Constants
         Ashfall.Error
         Ashfall.Robot
+        Ashfall.Location
         Ashfall.Resource
         Ashfall.Storage
         Ashfall.Transfer
