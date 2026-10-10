@@ -3,6 +3,7 @@ module Ashfall.Location where
 import Ashfall.Resource
 
 import Data.Map.Strict (Map)
+import qualified Data.Map.Strict as Map
 
 -- | Represents a location in Ashfall.
 data Location = Location
@@ -21,17 +22,71 @@ data LocationType
   | GasStation      -- 20% Scrap / 10% Iron / 70% Fuel
   deriving (Eq, Ord, Show)
 
+-- | Retrieves the resource drop weights for a given location type.
+resourceWeights :: LocationType -> [(Resource, Int)]
+resourceWeights Scrapyard =
+  [(Scrap, 75), (Iron, 20), (Fuel, 5)]
+
+resourceWeights IronQuarry =
+  [(Scrap, 20), (Iron, 75), (Crystal, 5)]
+
+resourceWeights CrystalCavern =
+  [(Scrap, 10), (Iron, 30), (Crystal, 60)]
+
+resourceWeights GasStation =
+  [(Scrap, 20), (Iron, 10), (Fuel, 70)]
+
 scrapyard :: Location
-scrapyard = undefined
+scrapyard = Location
+  { locationId = "LOC-001"
+  , locationName = "Scrapyard"
+  , locationDescription = "A vast field of rusted machinery and abandoned robots, rich in salvageable scrap."
+  , locationType = Scrapyard
+  , locationResources = Map.fromList
+      [ (Scrap, 75)
+      , (Iron, 20)
+      , (Fuel, 5)
+      ]
+  }
 
 ironQuarry :: Location
-ironQuarry = undefined
+ironQuarry = Location
+  { locationId = "LOC-002"
+  , locationName = "Iron Quarry"
+  , locationDescription = "An abandoned mining site with exposed iron deposits buried beneath fractured rock."
+  , locationType = IronQuarry
+  , locationResources = Map.fromList
+      [ (Scrap, 20)
+      , (Iron, 75)
+      , (Crystal, 5)
+      ]
+  }
 
 crystalCavern :: Location
-crystalCavern = undefined
+crystalCavern = Location
+  { locationId = "LOC-003"
+  , locationName = "Crystal Cavern"
+  , locationDescription = "A subterranean cave illuminated by rare crystalline formations."
+  , locationType = CrystalCavern
+  , locationResources = Map.fromList
+      [ (Scrap, 10)
+      , (Iron, 30)
+      , (Crystal, 60)
+      ]
+  }
 
 gasStation :: Location
-gasStation = undefined
+gasStation = Location
+  { locationId = "LOC-004"
+  , locationName = "Gas Station"
+  , locationDescription = "A derelict refueling station with partially intact underground fuel reserves."
+  , locationType = GasStation
+  , locationResources = Map.fromList
+      [ (Scrap, 20)
+      , (Iron, 10)
+      , (Fuel, 70)
+      ]
+  }
 
 -- | Returns the probability (0-1100%) of finding a resource at a given location.
 getResourceChance :: Resource -> Location -> Int
