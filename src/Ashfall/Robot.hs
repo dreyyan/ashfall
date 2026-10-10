@@ -116,10 +116,10 @@ removeFromInventory robot resource n = do
   Right robot { robotStorage = newStorage }
 
 -- | Performs the robot's assigned task.
--- performTask :: Robot -> _
--- performTask robot =
---   case robotTask robot of
---     Mine -> 
---     Explore -> 
---     Recharge -> 
---     Repair -> 
+performTask :: Robot -> _
+performTask robot =
+  case robotTask robot of
+    Mine -> 
+    -- Explore -> 
+    -- Recharge -> 
+    -- Repair -> 
