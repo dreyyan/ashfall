@@ -14,7 +14,7 @@ import Ashfall.Transfer (depositResources)
 import Fixtures
 
 import qualified Data.Map.Strict as Map
-import Ashfall.Mining (selectResource, calculateMiningYield, validateMining)
+import Ashfall.Mining (selectResource, calculateMiningYield, validateMining, mineResources)
 
 main :: IO()
 main = hspec $ do
@@ -433,6 +433,60 @@ main = hspec $ do
         validateMining (miningRobot {robotEnergy = 3}) scrapyard Scrap `shouldBe` Right ()
       it "allows BasicDrill to mine Scrap with exactly 1 energy" $
         validateMining (miningRobot {robotEquipment = BasicDrill, robotEnergy = 1}) scrapyard Scrap `shouldBe` Right ()
+    
+    describe "mineResources" $ do
+      let miningRobot = readyRobot
+            { robotStatus = Working
+            , robotTask = Just Mine
+            , robotEnergy = 100
+            , robotEquipment = AdvancedExtractor
+            }
+      it "mines Scrap successfully" $ do
+        let result = mineResources scrapyard 50 1 miningRobot
+        fmap robotEnergy result `shouldBe` Right 97
+        fmap (\r -> getResourceAmount Scrap (robotStorage r)) result `shouldBe` Right 4
+      it "mines Iron successfully" $ do
+        let result = mineResources scrapyard 85 2 miningRobot
+        fmap robotEnergy result `shouldBe` Right 97
+        fmap (\r -> getResourceAmount Iron (robotStorage r)) result `shouldBe` Right 5
+      it "mines Fuel successfully" $ do
+        let result = mineResources scrapyard 99 3 miningRobot
+        fmap robotEnergy result `shouldBe` Right 97
+        fmap (\r -> getResourceAmount Fuel (robotStorage r)) result `shouldBe` Right 6
+      it "mines Scrap with BasicDrill" $ do
+        let robot = miningRobot {robotEquipment = BasicDrill}
+            result = mineResources scrapyard 50 1 robot
+        fmap robotEnergy result `shouldBe` Right 99
+        fmap (\r -> getResourceAmount Scrap (robotStorage r)) result `shouldBe` Right 1
+      it "mines Iron with IndustrialDrill" $ do
+        let robot = miningRobot {robotEquipment = IndustrialDrill}
+            result = mineResources scrapyard 85 2 robot
+        fmap robotEnergy result `shouldBe` Right 98
+        fmap (\r -> getResourceAmount Iron (robotStorage r)) result `shouldBe` Right 3
+      it "rejects a zero resource roll" $
+        mineResources scrapyard 0 1 miningRobot `shouldBe` Left ResourceUnavailable
+      it "rejects a resource roll above 100" $
+        mineResources scrapyard 101 1 miningRobot `shouldBe` Left ResourceUnavailable
+      it "rejects mining with a disabled robot" $
+        mineResources scrapyard 50 1 (miningRobot {robotStatus = Disabled}) `shouldBe` Left DisabledRobot
+      it "rejects mining without an assigned task" $
+        mineResources scrapyard 50 1 (miningRobot {robotTask = Nothing}) `shouldBe` Left NoTaskAssigned
+      it "rejects mining when assigned to Explore" $
+        mineResources scrapyard 50 1 (miningRobot {robotTask = Just Explore}) `shouldBe` Left NoTaskAssigned
+      it "rejects mining unsupported resources" $
+        mineResources scrapyard 85 1 (miningRobot {robotEquipment = BasicDrill}) `shouldBe` Left UnsupportedResource
+      it "rejects mining with insufficient energy" $
+        mineResources scrapyard 50 1 (miningRobot {robotEnergy = 2}) `shouldBe` Left InsufficientEnergy
+      it "allows mining with exactly enough energy" $ do
+        let robot = miningRobot {robotEnergy = 3}
+            result = mineResources scrapyard 50 1 robot
+        fmap robotEnergy result `shouldBe` Right 0
+      it "rejects mining Crystal at the Scrapyard" $
+        validateMining miningRobot scrapyard Crystal `shouldBe` Left ResourceUnavailable
+      it "rejects a location with invalid probabilities" $
+        mineResources
+          (scrapyard {locationResources = Map.fromList [(Scrap, 50), (Iron, 20)]})
+          50 1 miningRobot `shouldBe` Left ResourceUnavailable
 
   describe "Resource" $ do
     describe "resourceDescription" $ do
@@ -662,26 +716,33 @@ main = hspec $ do
                 (Map.insert Scrap 3 (resources (robotStorage loadedRobot))) })
 
     describe "mineResources" $ do
-      it "mines resources successfully" $ do
-        mineResources readyRobot
-          `shouldBe` Right (readyRobot {
-            robotEnergy = 90,
-            robotStorage = Storage (Map.singleton Scrap 1)
-          })
-      it "rejects mining with insufficient energy" $ do
-        mineResources noEnergyRobot
+      let miningRobot = readyRobot
+            { robotStatus = Working
+            , robotTask = Just Mine
+            , robotEnergy = 100
+            , robotEquipment = AdvancedExtractor
+            , robotStorage = Storage Map.empty
+            }
+      it "mines Scrap successfully" $ do
+        let result = mineResources scrapyard 50 1 miningRobot
+        fmap robotEnergy result `shouldBe` Right 97
+        fmap (getResourceAmount Scrap . robotStorage) result `shouldBe` Right 4
+      it "rejects mining with insufficient energy" $
+        mineResources scrapyard 50 1 (miningRobot {robotEnergy = 2})
           `shouldBe` Left InsufficientEnergy
-      it "rejects mining when inventory is full" $ do
-        mineResources fullRobot
+      it "rejects mining when inventory is full" $
+        mineResources scrapyard 50 1
+          (miningRobot {robotStorage = Storage (Map.singleton Scrap robotDefaultCapacity)})
           `shouldBe` Left InsufficientCapacity
-      it "accepts mining at exact energy and capacity limits" $ do
-        mineResources exactLimitRobot
-          `shouldBe` Right
-            (exactLimitRobot
-              { robotEnergy = 0
-              , robotStorage =
-                  Storage (Map.singleton Scrap robotDefaultCapacity)
-              })
+      it "accepts mining with exactly enough energy" $ do
+        let result = mineResources scrapyard 50 1 (miningRobot {robotEnergy = 3})
+        fmap robotEnergy result `shouldBe` Right 0
+      it "rejects mining with a disabled robot" $
+        mineResources scrapyard 50 1 (miningRobot {robotStatus = Disabled})
+          `shouldBe` Left DisabledRobot
+      it "rejects mining an unsupported resource" $
+        mineResources scrapyard 85 1 (miningRobot {robotEquipment = BasicDrill})
+          `shouldBe` Left UnsupportedResource
 
   describe "Storage" $ do
     describe "addToStorage" $ do
@@ -766,6 +827,23 @@ main = hspec $ do
       it "accepts resources within partially occupied storage" $ do
         canStore Scrap 10 100 smallStorage
           `shouldBe` True
+
+    describe "getResourceAmount" $ do
+      let storage = Storage (Map.fromList [(Scrap, 10), (Iron, 5), (Crystal, 2), (Fuel, 3)])
+      it "returns the correct Scrap quantity" $
+        getResourceAmount Scrap storage `shouldBe` 10
+      it "returns the correct Iron quantity" $
+        getResourceAmount Iron storage `shouldBe` 5
+      it "returns the correct Crystal quantity" $
+        getResourceAmount Crystal storage `shouldBe` 2
+      it "returns the correct Fuel quantity" $
+        getResourceAmount Fuel storage `shouldBe` 3
+      it "returns zero when a resource is not stored" $
+        getResourceAmount Crystal (Storage (Map.fromList [(Scrap, 10)])) `shouldBe` 0
+      it "returns zero for empty storage" $
+        getResourceAmount Scrap (Storage Map.empty) `shouldBe` 0
+      it "returns zero for a resource explicitly stored with quantity zero" $
+        getResourceAmount Iron (Storage (Map.fromList [(Iron, 0)])) `shouldBe` 0
 
   describe "Transfer" $ do
     describe "depositResources" $ do

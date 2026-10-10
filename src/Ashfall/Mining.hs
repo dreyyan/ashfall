@@ -36,3 +36,23 @@ validateMining robot location resource
   | not (canMineResource resource (robotEquipment robot)) = Left UnsupportedResource
   | robotEnergy robot < equipmentEnergyCost (robotEquipment robot) = Left InsufficientEnergy
   | otherwise = Right ()
+
+-- | Performs one tick of mining at a location.
+mineResources :: Location -> Int -> Int -> Robot -> Either GameError Robot
+mineResources location resourceRoll yieldRoll robot = do
+  -- Select a resource using `selectResource`.
+  resource <- case selectResource location resourceRoll of
+    Nothing -> Left ResourceUnavailable
+    Just selected -> Right selected
+
+  -- Calculate the yield using calculateMiningYield.
+  let miningYield = calculateMiningYield (robotEquipment robot) yieldRoll
+
+  -- Validate the operation using validateMining.
+  validateMining robot location resource
+
+  -- Consume energy using consumeEnergy.
+  updatedRobot <- consumeEnergy (equipmentEnergyCost (robotEquipment robot)) robot
+
+  -- Add the mined resources using addToInventory.
+  addToInventory updatedRobot resource miningYield

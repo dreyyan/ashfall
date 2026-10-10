@@ -62,3 +62,8 @@ canStore :: Resource -> Int -> Int -> Storage -> Bool
 canStore resource amount capacity storage =
   amount > 0 &&
   calculateCost (resource, amount) <= capacity - storageUsed storage
+
+-- | Returns the quantity of a resource in storage.
+getResourceAmount :: Resource -> Storage -> Int
+getResourceAmount resource storage =
+  Map.findWithDefault 0 resource (resources storage)
