@@ -123,69 +123,6 @@ main = hspec $ do
         robotRemainingCapacity readyRobot `shouldBe` 15
 
   describe "Base" $ do
-    describe "addResources" $ do
-      it "adds scrap successfully" $ do
-        addResources Scrap 10 defaultBase
-          `shouldBe` Right
-            (defaultBase
-              { baseStorage = Storage (Map.fromList [(Scrap, 10)])
-              })
-      it "adds iron successfully" $ do
-        addResources Iron 10 defaultBase
-          `shouldBe` Right
-            (defaultBase
-              { baseStorage = Storage (Map.fromList [(Iron, 10)])
-              })
-      it "adds crystal successfully" $ do
-        addResources Crystal 10 defaultBase
-          `shouldBe` Right
-            (defaultBase
-              { baseStorage = Storage (Map.fromList [(Crystal, 10)])
-              })
-      it "adds fuel successfully" $ do
-        addResources Fuel 10 defaultBase
-          `shouldBe` Right
-            (defaultBase
-              { baseStorage = Storage (Map.fromList [(Fuel, 10)])
-              })
-      it "rejects zero amount" $ do
-        addResources Scrap 0 defaultBase
-          `shouldBe` Left InvalidResourceAmount
-      it "rejects negative amount" $ do
-        addResources Scrap (-1) defaultBase
-          `shouldBe` Left InvalidResourceAmount
-
-    describe "consumeResources" $ do
-      it "consumes scrap successfully" $ do
-        consumeResources Scrap 10 richBase
-          `shouldBe` Right
-            (richBase
-              { baseStorage = Storage (Map.insert Scrap 10 (resources (baseStorage richBase)))
-              })
-      it "consumes iron successfully" $ do
-        consumeResources Iron 10 richBase
-          `shouldBe` Right
-            (richBase
-              { baseStorage = Storage (Map.insert Iron 5 (resources (baseStorage richBase)))
-              })
-      it "consumes crystal successfully" $ do
-        consumeResources Crystal 10 richBase
-          `shouldBe` Right
-            (richBase
-              { baseStorage = Storage (Map.insert Crystal 0 (resources (baseStorage richBase)))
-              })
-      it "consumes fuel successfully" $ do
-        consumeResources Fuel 10 richBase
-          `shouldBe` Right
-            (richBase
-              { baseStorage = Storage (Map.insert Fuel 0 (resources (baseStorage richBase)))
-              })
-      it "rejects zero amount" $ do
-        consumeResources Scrap 0 richBase
-          `shouldBe` Left InvalidResourceAmount
-      it "rejects negative amount" $ do
-        consumeResources Scrap (-1) richBase
-          `shouldBe` Left InvalidResourceAmount
 
     describe "calculateCost" $ do
       it "calculates scrap capacity cost" $ do
@@ -248,6 +185,51 @@ main = hspec $ do
         resourceCapacityCost Crystal `shouldBe` 3
       it "returns fuel capacity cost" $ do
         resourceCapacityCost Fuel `shouldBe` 2
+
+  describe "Storage" $ do
+    describe "addToStorage" $ do
+      it "adds scrap successfully" $ do
+        addToStorage Scrap 10 emptyStorage
+          `shouldBe` Right (Storage (Map.singleton Scrap 10))
+      it "adds iron successfully" $ do
+        addToStorage Iron 10 emptyStorage
+          `shouldBe` Right (Storage (Map.singleton Iron 10))
+      it "adds crystal successfully" $ do
+        addToStorage Crystal 10 emptyStorage
+          `shouldBe` Right (Storage (Map.singleton Crystal 10))
+      it "adds fuel successfully" $ do
+        addToStorage Fuel 10 emptyStorage
+          `shouldBe` Right (Storage (Map.singleton Fuel 10))
+      it "rejects zero amount" $ do
+        addToStorage Scrap 0 emptyStorage
+          `shouldBe` Left InvalidResourceAmount
+      it "rejects negative amount" $ do
+        addToStorage Scrap (-1) emptyStorage
+          `shouldBe` Left InvalidResourceAmount
+
+    describe "removeFromStorage" $ do
+      it "removes scrap successfully" $ do
+        removeFromStorage Scrap 20 richStorage
+          `shouldBe` Right
+          (Storage (Map.adjust (subtract 20) Scrap (resources richStorage)))
+      it "removes iron successfully" $ do
+        removeFromStorage Iron 15 richStorage
+          `shouldBe` Right
+          (Storage (Map.adjust (subtract 15) Iron (resources richStorage)))
+      it "removes crystal successfully" $ do
+        removeFromStorage Crystal 10 richStorage
+          `shouldBe` Right
+          (Storage (Map.adjust (subtract 10) Crystal (resources richStorage)))
+      it "removes fuel successfully" $ do
+        removeFromStorage Fuel 10 richStorage
+          `shouldBe` Right
+          (Storage (Map.adjust (subtract 10) Fuel (resources richStorage)))
+      it "rejects zero amount" $ do
+        removeFromStorage Fuel 0 richStorage
+          `shouldBe` Left InvalidResourceAmount
+      it "rejects negative amount" $ do
+        removeFromStorage Fuel (-1) richStorage
+          `shouldBe` Left InvalidResourceAmount
 
   describe "Error" $ do
     describe "errorMessage" $ do

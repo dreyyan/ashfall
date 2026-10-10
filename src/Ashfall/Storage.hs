@@ -25,3 +25,23 @@ addToStorage resource amount storage = do
           newResources = Map.insert resource newAmount oldResources
 
       Right (Storage newResources)
+
+-- | Remove resources from storage.
+removeFromStorage :: Resource -> Int -> Storage -> Either GameError Storage
+removeFromStorage resource amount storage = do
+  let isValidAmount = amount > 0
+
+  if not isValidAmount
+    then Left InvalidResourceAmount
+    else do
+      let oldResources = resources storage
+          currentAmount = Map.findWithDefault 0 resource oldResources
+          hasEnoughResources = currentAmount >= amount
+
+      if not hasEnoughResources
+        then Left InsufficientResources
+        else do
+          let newAmount = currentAmount - amount
+              newResources = Map.insert resource newAmount oldResources
+
+          Right (Storage newResources)

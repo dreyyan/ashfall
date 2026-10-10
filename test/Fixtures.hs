@@ -50,3 +50,34 @@ richBase =
             ])
     , baseCapacity = 100
     }
+
+-- Test fixtures: Storage
+emptyStorage :: Storage
+emptyStorage = Storage Map.empty
+
+smallStorage :: Storage
+smallStorage =
+  Storage
+    (Map.fromList
+      [ (Scrap, 5)
+      , (Iron, 3)
+      , (Crystal, 2)
+      , (Fuel, 1)
+      ])
+
+richStorage :: Storage
+richStorage =
+  Storage
+    (Map.fromList
+      [ (Scrap, 20)
+      , (Iron, 15)
+      , (Crystal, 10)
+      , (Fuel, 10)
+      ])
+
+fullStorage :: Storage
+fullStorage =
+  Storage
+    (Map.fromList
+      [ (Scrap, 100)
+      ])

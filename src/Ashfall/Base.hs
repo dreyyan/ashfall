@@ -16,19 +16,8 @@ data Base = Base
 -- | Add resources to the player's base.
 addResources :: Resource -> Int -> Base -> Either GameError Base
 addResources resource amount base = do
-  let isValidAmount = amount > 0
-
-  if not isValidAmount
-    then Left InvalidResourceAmount
-    else do
-      let oldStorage = baseStorage base
-          oldResources = resources oldStorage
-          currentAmount = Map.findWithDefault 0 resource oldResources
-          newAmount = currentAmount + amount
-          newResources = Map.insert resource newAmount oldResources
-          newStorage = Storage newResources;
-
-      Right base { baseStorage = newStorage }
+  newStorage <- addToStorage resource amount (baseStorage base)
+  Right base { baseStorage = newStorage }
 
 -- | Consumes resouces from the player's base.
 consumeResources :: Resource -> Int -> Base -> Either GameError Base
