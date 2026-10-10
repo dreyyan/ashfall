@@ -101,18 +101,18 @@ robotRemainingCapacity robot =
   robotCapacity robot - storageUsed (robotStorage robot)
 
 -- | Add resources to the robot's inventory.
-addToInventory :: Resource -> Int -> Robot -> Either GameError Robot
-addToInventory resource n robot = do
-  newStorage <- addToStorage resource n (robotStorage robot)
+addToInventory :: Robot -> Resource -> Int -> Either GameError Robot
+addToInventory robot resource n = do
+  newStorage <- addToStorage (robotStorage robot) resource n
 
   if not (canStore resource n (robotCapacity robot) (robotStorage robot))
     then Left InsufficientCapacity
     else Right robot { robotStorage = newStorage }
 
 -- | Remove resouces from the robot's inventory.
-removeFromInventory :: Resource -> Int -> Robot -> Either GameError Robot
-removeFromInventory resource n robot = do
-  newStorage <- removeFromStorage resource n (robotStorage robot)
+removeFromInventory :: Robot -> Resource -> Int -> Either GameError Robot
+removeFromInventory robot resource n = do
+  newStorage <- removeFromStorage (robotStorage robot) resource n
   Right robot { robotStorage = newStorage }
 
 -- | Performs the robot's assigned task.

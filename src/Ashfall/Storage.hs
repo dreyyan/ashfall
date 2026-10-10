@@ -12,8 +12,8 @@ newtype Storage = Storage
   deriving (Show, Eq)
 
 -- | Add resources to storage.
-addToStorage :: Resource -> Int -> Storage -> Either GameError Storage
-addToStorage resource amount storage = do
+addToStorage :: Storage -> Resource -> Int -> Either GameError Storage
+addToStorage storage resource amount = do
   let isValidAmount = amount > 0
 
   if not isValidAmount
@@ -27,8 +27,8 @@ addToStorage resource amount storage = do
       Right (Storage newResources)
 
 -- | Remove resources from storage.
-removeFromStorage :: Resource -> Int -> Storage -> Either GameError Storage
-removeFromStorage resource amount storage = do
+removeFromStorage :: Storage -> Resource -> Int -> Either GameError Storage
+removeFromStorage storage resource amount = do
   let isValidAmount = amount > 0
 
   if not isValidAmount
@@ -56,9 +56,12 @@ storageUsed :: Storage -> Int
 storageUsed storage =
   let resourceList = Map.toList (resources storage)
   in sum (map calculateCost resourceList)
-  
+
 -- | Checks whether storage has enough remaining capacity.
 canStore :: Resource -> Int -> Int -> Storage -> Bool
 canStore resource amount capacity storage =
   amount > 0 &&
   calculateCost (resource, amount) <= capacity - storageUsed storage
+
+-- | Move resources from robot to base.
+-- depositResources :: Robot -> Resource -> Int -> Base -> Either GameError

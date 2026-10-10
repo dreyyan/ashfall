@@ -12,18 +12,18 @@ data Base = Base
   } deriving (Show, Eq)
 
 -- | Add resources to the player's base.
-addResources :: Resource -> Int -> Base -> Either GameError Base
-addResources resource n base = do
-  newStorage <- addToStorage resource n (baseStorage base)
+addResources :: Base -> Resource -> Int -> Either GameError Base
+addResources base resource n = do
+  newStorage <- addToStorage (baseStorage base) resource n
 
   if not (canStore resource n (baseCapacity base) (baseStorage base))
     then Left InsufficientCapacity
     else Right base { baseStorage = newStorage }
 
 -- | Consumes resouces from the player's base.
-consumeResources :: Resource -> Int -> Base -> Either GameError Base
-consumeResources resource n base = do
-  newStorage <- removeFromStorage resource n (baseStorage base)
+consumeResources :: Base -> Resource -> Int -> Either GameError Base
+consumeResources base resource n = do
+  newStorage <- removeFromStorage (baseStorage base) resource n
   Right base { baseStorage = newStorage }
 
 -- | Calculate remaining capcity.

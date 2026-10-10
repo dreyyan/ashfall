@@ -124,76 +124,76 @@ main = hspec $ do
 
     describe "addToInventory" $ do
       it "adds scrap successfully" $ do
-        addToInventory Scrap 10 readyRobot
+        addToInventory readyRobot Scrap 10
           `shouldBe` Right (readyRobot
             { robotStorage = Storage (Map.singleton Scrap 10) })
       it "adds iron successfully" $ do
-        addToInventory Iron 7 readyRobot
+        addToInventory readyRobot Iron 7
           `shouldBe` Right (readyRobot
             { robotStorage = Storage (Map.singleton Iron 7) })
       it "adds crystal successfully" $ do
-        addToInventory Crystal 5 readyRobot
+        addToInventory readyRobot Crystal 5
           `shouldBe` Right (readyRobot
             { robotStorage = Storage (Map.singleton Crystal 5) })
       it "adds fuel successfully" $ do
-        addToInventory Fuel 7 readyRobot
+        addToInventory readyRobot Fuel 7
           `shouldBe` Right (readyRobot
             { robotStorage = Storage (Map.singleton Fuel 7) })
       it "rejects zero amount" $ do
-        addToInventory Scrap 0 readyRobot
+        addToInventory readyRobot Scrap 0
           `shouldBe` Left InvalidResourceAmount
       it "rejects negative amount" $ do
-        addToInventory Scrap (-1) readyRobot
+        addToInventory readyRobot Scrap (-1)
           `shouldBe` Left InvalidResourceAmount
       it "rejects resources exceeding capacity" $ do
-        addToInventory Scrap 21 readyRobot
+        addToInventory readyRobot Scrap 21
           `shouldBe` Left InsufficientCapacity
       it "accepts resources that exactly fill capacity" $ do
-        addToInventory Scrap 15 readyRobot
+        addToInventory readyRobot Scrap 15
           `shouldBe` Right (readyRobot
             { robotStorage = Storage (Map.singleton Scrap 15) })
       it "rejects resources when inventory is full" $ do
-        addToInventory Scrap 1 fullRobot
+        addToInventory fullRobot Scrap 1
           `shouldBe` Left InsufficientCapacity
       it "adds resources to an existing inventory" $ do
-        addToInventory Scrap 3 loadedRobot
+        addToInventory loadedRobot Scrap 3
           `shouldBe` Right (loadedRobot
             { robotStorage = Storage
                 (Map.insert Scrap 8 (resources (robotStorage loadedRobot))) })
 
     describe "removeFromInventory" $ do
       it "removes scrap successfully" $ do
-        removeFromInventory Scrap 5 loadedRobot
+        removeFromInventory loadedRobot Scrap 5
           `shouldBe` Right (loadedRobot
             { robotStorage = Storage
                 (Map.insert Scrap 0 (resources (robotStorage loadedRobot))) })
       it "removes iron successfully" $ do
-        removeFromInventory Iron 2 loadedRobot
+        removeFromInventory loadedRobot Iron 2
           `shouldBe` Right (loadedRobot
             { robotStorage = Storage
                 (Map.insert Iron 0 (resources (robotStorage loadedRobot))) })
       it "removes crystal successfully" $ do
-        removeFromInventory Crystal 1 loadedRobot
+        removeFromInventory loadedRobot Crystal 1
           `shouldBe` Right (loadedRobot
             { robotStorage = Storage
                 (Map.insert Crystal 0 (resources (robotStorage loadedRobot))) })
       it "removes fuel successfully" $ do
-        removeFromInventory Fuel 10 fullRobot
+        removeFromInventory fullRobot Fuel 10
           `shouldBe` Left InsufficientResources
       it "rejects zero amount" $ do
-        removeFromInventory Scrap 0 loadedRobot
+        removeFromInventory loadedRobot Scrap 0
           `shouldBe` Left InvalidResourceAmount
       it "rejects negative amount" $ do
-        removeFromInventory Scrap (-1) loadedRobot
+        removeFromInventory loadedRobot Scrap (-1)
           `shouldBe` Left InvalidResourceAmount
       it "rejects insufficient resources" $ do
-        removeFromInventory Scrap 6 loadedRobot
+        removeFromInventory loadedRobot Scrap 6
           `shouldBe` Left InsufficientResources
       it "rejects removal from empty inventory" $ do
-        removeFromInventory Scrap 1 readyRobot
+        removeFromInventory readyRobot Scrap 1
           `shouldBe` Left InsufficientResources
       it "accepts removing part of an existing resource" $ do
-        removeFromInventory Scrap 2 loadedRobot
+        removeFromInventory loadedRobot Scrap 2
           `shouldBe` Right (loadedRobot
             { robotStorage = Storage
                 (Map.insert Scrap 3 (resources (robotStorage loadedRobot))) })
@@ -201,70 +201,70 @@ main = hspec $ do
   describe "Base" $ do
     describe "addResources" $ do
       it "adds scrap successfully" $ do
-        addResources Scrap 10 defaultBase
+        addResources defaultBase Scrap 10
           `shouldBe` Right (defaultBase
             { baseStorage = Storage (Map.singleton Scrap 10) })
       it "adds iron successfully" $ do
-        addResources Iron 10 defaultBase
+        addResources defaultBase Iron 10
           `shouldBe` Right (defaultBase
             { baseStorage = Storage (Map.singleton Iron 10) })
       it "adds crystal successfully" $ do
-        addResources Crystal 10 defaultBase
+        addResources defaultBase Crystal 10
           `shouldBe` Right (defaultBase
             { baseStorage = Storage (Map.singleton Crystal 10) })
       it "adds fuel successfully" $ do
-        addResources Fuel 10 defaultBase
+        addResources defaultBase Fuel 10
           `shouldBe` Right (defaultBase
             { baseStorage = Storage (Map.singleton Fuel 10) })
       it "rejects zero amount" $ do
-        addResources Scrap 0 defaultBase
+        addResources defaultBase Scrap 0
           `shouldBe` Left InvalidResourceAmount
       it "rejects negative amount" $ do
-        addResources Scrap (-1) defaultBase
+        addResources defaultBase Scrap (-1)
           `shouldBe` Left InvalidResourceAmount
       it "rejects resources exceeding capacity" $ do
-        addResources Scrap 101 defaultBase
+        addResources defaultBase Scrap 101
           `shouldBe` Left InsufficientCapacity
       it "accepts resources that exactly fill capacity" $ do
-        addResources Scrap 100 defaultBase
+        addResources defaultBase Scrap 100
           `shouldBe` Right (defaultBase
             { baseStorage = Storage (Map.singleton Scrap 100) })
       it "rejects resources when storage is full" $ do
-        addResources Scrap 1 richBase
+        addResources richBase Scrap 1
           `shouldBe` Left InsufficientCapacity
 
     describe "consumeResources" $ do
       it "removes scrap successfully" $ do
-        consumeResources Scrap 20 richBase
+        consumeResources richBase Scrap 20
           `shouldBe` Right (richBase
             { baseStorage = Storage
                 (Map.adjust (subtract 20) Scrap (resources (baseStorage richBase))) })
       it "removes iron successfully" $ do
-        consumeResources Iron 15 richBase
+        consumeResources richBase Iron 15
           `shouldBe` Right (richBase
             { baseStorage = Storage
                 (Map.adjust (subtract 15) Iron (resources (baseStorage richBase))) })
       it "removes crystal successfully" $ do
-        consumeResources Crystal 10 richBase
+        consumeResources richBase Crystal 10
           `shouldBe` Right (richBase
             { baseStorage = Storage
                 (Map.adjust (subtract 10) Crystal (resources (baseStorage richBase))) })
       it "removes fuel successfully" $ do
-        consumeResources Fuel 10 richBase
+        consumeResources richBase Fuel 10
           `shouldBe` Right (richBase
             { baseStorage = Storage
                 (Map.adjust (subtract 10) Fuel (resources (baseStorage richBase))) })
       it "rejects zero amount" $ do
-        consumeResources Fuel 0 richBase
+        consumeResources richBase Fuel 0
           `shouldBe` Left InvalidResourceAmount
       it "rejects negative amount" $ do
-        consumeResources Fuel (-1) richBase
+        consumeResources richBase Fuel (-1)
           `shouldBe` Left InvalidResourceAmount
       it "rejects insufficient resources" $ do
-        consumeResources Scrap 21 richBase
+        consumeResources richBase Scrap 21
           `shouldBe` Left InsufficientResources
       it "accepts consuming all available resources" $ do
-        consumeResources Scrap 20 richBase
+        consumeResources richBase Scrap 20
           `shouldBe` Right (richBase
             { baseStorage = Storage
                 (Map.insert Scrap 0 (resources (baseStorage richBase))) })
@@ -301,46 +301,46 @@ main = hspec $ do
   describe "Storage" $ do
     describe "addToStorage" $ do
       it "adds scrap successfully" $ do
-        addToStorage Scrap 10 emptyStorage
+        addToStorage emptyStorage Scrap 10
           `shouldBe` Right (Storage (Map.singleton Scrap 10))
       it "adds iron successfully" $ do
-        addToStorage Iron 10 emptyStorage
+        addToStorage emptyStorage Iron 10
           `shouldBe` Right (Storage (Map.singleton Iron 10))
       it "adds crystal successfully" $ do
-        addToStorage Crystal 10 emptyStorage
+        addToStorage emptyStorage Crystal 10
           `shouldBe` Right (Storage (Map.singleton Crystal 10))
       it "adds fuel successfully" $ do
-        addToStorage Fuel 10 emptyStorage
+        addToStorage emptyStorage Fuel 10
           `shouldBe` Right (Storage (Map.singleton Fuel 10))
       it "rejects zero amount" $ do
-        addToStorage Scrap 0 emptyStorage
+        addToStorage emptyStorage Scrap 0
           `shouldBe` Left InvalidResourceAmount
       it "rejects negative amount" $ do
-        addToStorage Scrap (-1) emptyStorage
+        addToStorage emptyStorage Scrap (-1)
           `shouldBe` Left InvalidResourceAmount
 
     describe "removeFromStorage" $ do
       it "removes scrap successfully" $ do
-        removeFromStorage Scrap 20 richStorage
+        removeFromStorage richStorage Scrap 20
           `shouldBe` Right
           (Storage (Map.adjust (subtract 20) Scrap (resources richStorage)))
       it "removes iron successfully" $ do
-        removeFromStorage Iron 15 richStorage
+        removeFromStorage richStorage Iron 15
           `shouldBe` Right
           (Storage (Map.adjust (subtract 15) Iron (resources richStorage)))
       it "removes crystal successfully" $ do
-        removeFromStorage Crystal 10 richStorage
+        removeFromStorage richStorage Crystal 10
           `shouldBe` Right
           (Storage (Map.adjust (subtract 10) Crystal (resources richStorage)))
       it "removes fuel successfully" $ do
-        removeFromStorage Fuel 10 richStorage
+        removeFromStorage richStorage Fuel 10
           `shouldBe` Right
           (Storage (Map.adjust (subtract 10) Fuel (resources richStorage)))
       it "rejects zero amount" $ do
-        removeFromStorage Fuel 0 richStorage
+        removeFromStorage richStorage Fuel 0
           `shouldBe` Left InvalidResourceAmount
       it "rejects negative amount" $ do
-        removeFromStorage Fuel (-1) richStorage
+        removeFromStorage richStorage Fuel (-1)
           `shouldBe` Left InvalidResourceAmount
 
     describe "calculateCost" $ do
