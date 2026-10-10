@@ -45,3 +45,20 @@ removeFromStorage resource amount storage = do
               newResources = Map.insert resource newAmount oldResources
 
           Right (Storage newResources)
+
+-- | Calculate the capcaity cost of a resource amount.
+calculateCost :: (Resource, Int) -> Int
+calculateCost (resource, amount) =
+  amount * resourceCapacityCost resource
+
+-- | Calculate how much storage is used.
+storageUsed :: Storage -> Int
+storageUsed storage =
+  let resourceList = Map.toList (resources storage)
+  in sum (map calculateCost resourceList)
+  
+-- | Checks whether storage has enough remaining capacity.
+canStore :: Resource -> Int -> Int -> Storage -> Bool
+canStore resource amount capacity storage =
+  amount > 0 &&
+  calculateCost (resource, amount) <= capacity - storageUsed storage

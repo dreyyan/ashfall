@@ -9,6 +9,7 @@ data GameError
   | NotWorking
   | InvalidResourceAmount
   | InsufficientResources
+  | InsufficientCapacity
   deriving (Eq, Show)
 
 errorMessage :: GameError -> String
@@ -20,3 +21,4 @@ errorMessage AlreadyWorking = "> " ++ "Robot is already working!"
 errorMessage NotWorking = "> " ++ "Robot is not working!"
 errorMessage InvalidResourceAmount = "> " ++ "Invalid resource amount!"
 errorMessage InsufficientResources = "> " ++ "Insufficient resources!"
+errorMessage InsufficientCapacity = "> " ++ "Insufficient capacity!"

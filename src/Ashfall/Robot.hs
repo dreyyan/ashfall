@@ -1,8 +1,8 @@
 module Ashfall.Robot where
 
-import Ashfall.Base
 import Ashfall.Constants (maxRobotEnergy)
 import Ashfall.Error
+import Ashfall.Resource
 import Ashfall.Storage
 
 -- | Represents a Robot's status.
@@ -99,6 +99,21 @@ stopTask robot =
 robotRemainingCapacity :: Robot -> Int
 robotRemainingCapacity robot =
   robotCapacity robot - storageUsed (robotStorage robot)
+
+-- | Add resources to the robot's inventory.
+addToInventory :: Resource -> Int -> Robot -> Either GameError Robot
+addToInventory resource n robot = do
+  newStorage <- addToStorage resource n (robotStorage robot)
+
+  if not (canStore resource n (robotCapacity robot) (robotStorage robot))
+    then Left InsufficientCapacity
+    else Right robot { robotStorage = newStorage }
+
+-- | Remove resouces from the robot's inventory.
+removeFromInventory :: Resource -> Int -> Robot -> Either GameError Robot
+removeFromInventory resource n robot = do
+  newStorage <- removeFromStorage resource n (robotStorage robot)
+  Right robot { robotStorage = newStorage }
 
 -- | Performs the robot's assigned task.
 -- performTask :: Robot -> _

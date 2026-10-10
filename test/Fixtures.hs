@@ -27,6 +27,25 @@ disabledRobot = readyRobot { robotStatus = Disabled }
 workingRobot :: Robot
 workingRobot = readyRobot { robotStatus = Working }
 
+loadedRobot :: Robot
+loadedRobot =
+  readyRobot
+    { robotStorage =
+        Storage
+          (Map.fromList
+            [ (Scrap, 5)
+            , (Iron, 2)
+            , (Crystal, 1)
+            ])
+    }
+
+fullRobot :: Robot
+fullRobot =
+  readyRobot
+    { robotStorage =
+        Storage (Map.singleton Scrap robotDefaultCapacity)
+    }
+
 -- Test fixtures: Base
 defaultBase :: Base
 defaultBase =
@@ -46,7 +65,7 @@ richBase =
             [ (Scrap, 20)
             , (Iron, 15)
             , (Crystal, 10)
-          , (Fuel, 10)
+            , (Fuel, 10)
             ])
     , baseCapacity = 100
     }
