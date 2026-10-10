@@ -15,6 +15,106 @@ import Ashfall.Constants (robotDefaultCapacity)
 
 main :: IO()
 main = hspec $ do
+  describe "Base" $ do
+    describe "addResources" $ do
+      it "adds scrap successfully" $ do
+        addResources defaultBase Scrap 10
+          `shouldBe` Right (defaultBase
+            { baseStorage = Storage (Map.singleton Scrap 10) })
+      it "adds iron successfully" $ do
+        addResources defaultBase Iron 10
+          `shouldBe` Right (defaultBase
+            { baseStorage = Storage (Map.singleton Iron 10) })
+      it "adds crystal successfully" $ do
+        addResources defaultBase Crystal 10
+          `shouldBe` Right (defaultBase
+            { baseStorage = Storage (Map.singleton Crystal 10) })
+      it "adds fuel successfully" $ do
+        addResources defaultBase Fuel 10
+          `shouldBe` Right (defaultBase
+            { baseStorage = Storage (Map.singleton Fuel 10) })
+      it "rejects zero amount" $ do
+        addResources defaultBase Scrap 0
+          `shouldBe` Left InvalidResourceAmount
+      it "rejects negative amount" $ do
+        addResources defaultBase Scrap (-1)
+          `shouldBe` Left InvalidResourceAmount
+      it "rejects resources exceeding capacity" $ do
+        addResources defaultBase Scrap 101
+          `shouldBe` Left InsufficientCapacity
+      it "accepts resources that exactly fill capacity" $ do
+        addResources defaultBase Scrap 100
+          `shouldBe` Right (defaultBase
+            { baseStorage = Storage (Map.singleton Scrap 100) })
+      it "rejects resources when storage is full" $ do
+        addResources richBase Scrap 1
+          `shouldBe` Left InsufficientCapacity
+
+    describe "consumeResources" $ do
+      it "removes scrap successfully" $ do
+        consumeResources richBase Scrap 20
+          `shouldBe` Right (richBase
+            { baseStorage = Storage
+                (Map.adjust (subtract 20) Scrap (resources (baseStorage richBase))) })
+      it "removes iron successfully" $ do
+        consumeResources richBase Iron 15
+          `shouldBe` Right (richBase
+            { baseStorage = Storage
+                (Map.adjust (subtract 15) Iron (resources (baseStorage richBase))) })
+      it "removes crystal successfully" $ do
+        consumeResources richBase Crystal 10
+          `shouldBe` Right (richBase
+            { baseStorage = Storage
+                (Map.adjust (subtract 10) Crystal (resources (baseStorage richBase))) })
+      it "removes fuel successfully" $ do
+        consumeResources richBase Fuel 10
+          `shouldBe` Right (richBase
+            { baseStorage = Storage
+                (Map.adjust (subtract 10) Fuel (resources (baseStorage richBase))) })
+      it "rejects zero amount" $ do
+        consumeResources richBase Fuel 0
+          `shouldBe` Left InvalidResourceAmount
+      it "rejects negative amount" $ do
+        consumeResources richBase Fuel (-1)
+          `shouldBe` Left InvalidResourceAmount
+      it "rejects insufficient resources" $ do
+        consumeResources richBase Scrap 21
+          `shouldBe` Left InsufficientResources
+      it "accepts consuming all available resources" $ do
+        consumeResources richBase Scrap 20
+          `shouldBe` Right (richBase
+            { baseStorage = Storage
+                (Map.insert Scrap 0 (resources (baseStorage richBase))) })
+
+    describe "remainingCapacity" $ do
+      it "calculates remaining base capacity" $ do
+        remainingCapacity defaultBase `shouldBe` 100
+
+  describe "Resource" $ do
+    describe "resourceDescription" $ do
+      it "returns the scrap description" $ do
+        resourceDescription Scrap
+          `shouldBe` "Salvaged metal and machinery parts."
+      it "returns the iron description" $ do
+        resourceDescription Iron
+          `shouldBe` "A durable metal used for construction."
+      it "returns the crystal description" $ do
+        resourceDescription Crystal
+          `shouldBe` "A rare crystalline material."
+      it "returns the fuel description" $ do
+        resourceDescription Fuel
+          `shouldBe` "A combustible resource used to power machinery."
+
+    describe "resourceCapacityCost" $ do
+      it "returns scrap capacity cost" $ do
+        resourceCapacityCost Scrap `shouldBe` 1
+      it "returns iron capacity cost" $ do
+        resourceCapacityCost Iron `shouldBe` 2
+      it "returns crystal capacity cost" $ do
+        resourceCapacityCost Crystal `shouldBe` 3
+      it "returns fuel capacity cost" $ do
+        resourceCapacityCost Fuel `shouldBe` 2
+
   describe "Robot" $ do
     describe "consumeEnergy" $ do
       it "accepts valid energy consumption" $ do
@@ -238,107 +338,6 @@ main = hspec $ do
               , robotStorage =
                   Storage (Map.singleton Scrap robotDefaultCapacity)
               })
-      
-
-  describe "Base" $ do
-    describe "addResources" $ do
-      it "adds scrap successfully" $ do
-        addResources defaultBase Scrap 10
-          `shouldBe` Right (defaultBase
-            { baseStorage = Storage (Map.singleton Scrap 10) })
-      it "adds iron successfully" $ do
-        addResources defaultBase Iron 10
-          `shouldBe` Right (defaultBase
-            { baseStorage = Storage (Map.singleton Iron 10) })
-      it "adds crystal successfully" $ do
-        addResources defaultBase Crystal 10
-          `shouldBe` Right (defaultBase
-            { baseStorage = Storage (Map.singleton Crystal 10) })
-      it "adds fuel successfully" $ do
-        addResources defaultBase Fuel 10
-          `shouldBe` Right (defaultBase
-            { baseStorage = Storage (Map.singleton Fuel 10) })
-      it "rejects zero amount" $ do
-        addResources defaultBase Scrap 0
-          `shouldBe` Left InvalidResourceAmount
-      it "rejects negative amount" $ do
-        addResources defaultBase Scrap (-1)
-          `shouldBe` Left InvalidResourceAmount
-      it "rejects resources exceeding capacity" $ do
-        addResources defaultBase Scrap 101
-          `shouldBe` Left InsufficientCapacity
-      it "accepts resources that exactly fill capacity" $ do
-        addResources defaultBase Scrap 100
-          `shouldBe` Right (defaultBase
-            { baseStorage = Storage (Map.singleton Scrap 100) })
-      it "rejects resources when storage is full" $ do
-        addResources richBase Scrap 1
-          `shouldBe` Left InsufficientCapacity
-
-    describe "consumeResources" $ do
-      it "removes scrap successfully" $ do
-        consumeResources richBase Scrap 20
-          `shouldBe` Right (richBase
-            { baseStorage = Storage
-                (Map.adjust (subtract 20) Scrap (resources (baseStorage richBase))) })
-      it "removes iron successfully" $ do
-        consumeResources richBase Iron 15
-          `shouldBe` Right (richBase
-            { baseStorage = Storage
-                (Map.adjust (subtract 15) Iron (resources (baseStorage richBase))) })
-      it "removes crystal successfully" $ do
-        consumeResources richBase Crystal 10
-          `shouldBe` Right (richBase
-            { baseStorage = Storage
-                (Map.adjust (subtract 10) Crystal (resources (baseStorage richBase))) })
-      it "removes fuel successfully" $ do
-        consumeResources richBase Fuel 10
-          `shouldBe` Right (richBase
-            { baseStorage = Storage
-                (Map.adjust (subtract 10) Fuel (resources (baseStorage richBase))) })
-      it "rejects zero amount" $ do
-        consumeResources richBase Fuel 0
-          `shouldBe` Left InvalidResourceAmount
-      it "rejects negative amount" $ do
-        consumeResources richBase Fuel (-1)
-          `shouldBe` Left InvalidResourceAmount
-      it "rejects insufficient resources" $ do
-        consumeResources richBase Scrap 21
-          `shouldBe` Left InsufficientResources
-      it "accepts consuming all available resources" $ do
-        consumeResources richBase Scrap 20
-          `shouldBe` Right (richBase
-            { baseStorage = Storage
-                (Map.insert Scrap 0 (resources (baseStorage richBase))) })
-
-    describe "remainingCapacity" $ do
-      it "calculates remaining base capacity" $ do
-        remainingCapacity defaultBase `shouldBe` 100
-
-  describe "Resource" $ do
-    describe "resourceDescription" $ do
-      it "returns the scrap description" $ do
-        resourceDescription Scrap
-          `shouldBe` "Salvaged metal and machinery parts."
-      it "returns the iron description" $ do
-        resourceDescription Iron
-          `shouldBe` "A durable metal used for construction."
-      it "returns the crystal description" $ do
-        resourceDescription Crystal
-          `shouldBe` "A rare crystalline material."
-      it "returns the fuel description" $ do
-        resourceDescription Fuel
-          `shouldBe` "A combustible resource used to power machinery."
-
-    describe "resourceCapacityCost" $ do
-      it "returns scrap capacity cost" $ do
-        resourceCapacityCost Scrap `shouldBe` 1
-      it "returns iron capacity cost" $ do
-        resourceCapacityCost Iron `shouldBe` 2
-      it "returns crystal capacity cost" $ do
-        resourceCapacityCost Crystal `shouldBe` 3
-      it "returns fuel capacity cost" $ do
-        resourceCapacityCost Fuel `shouldBe` 2
 
   describe "Storage" $ do
     describe "addToStorage" $ do
